@@ -5,3 +5,7 @@
 *.in
 *.map
 *.out
+*.cproject
+*.project
+*.prefs
+*.xml
