@@ -1,4 +1,4 @@
-PROJECT_NAME     := blinky_FreeRTOS_pca10040
+PROJECT_NAME     := tigit_pca10040
 TARGETS          := nrf52832_xxaa
 OUTPUT_DIRECTORY := _build
 
