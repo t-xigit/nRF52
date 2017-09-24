@@ -110,6 +110,7 @@ static void led_toggle_task_function (void * pvParameter)
 static void led_toggle_timer_callback (void * pvParameter)
 {
     UNUSED_PARAMETER(pvParameter);
+    NRF_LOG_INFO("TIMER\n\r");
     bsp_board_led_invert(BSP_BOARD_LED_1);
 }
 
