@@ -3,3 +3,8 @@
 *.map
 *.hex
 *.elf
+*.asm
+*.emSession
+*.ind
+*.ld
+*.s
