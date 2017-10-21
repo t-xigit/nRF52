@@ -2,7 +2,7 @@ PROJECT_NAME     := blinky_FreeRTOS_pca10040
 TARGETS          := nrf52832_xxaa
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := C:/nRF52_xigit/nRF5_SDK_14.0.0_3bcc1f7
+SDK_ROOT := ../../../../../..
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
@@ -137,9 +137,12 @@ default: nrf52832_xxaa
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo 	nrf52832_xxaa
+	@echo		nrf52832_xxaa
+	@echo		sdk_config - starting external tool for editing sdk_config.h
+	@echo		flash      - flashing binary
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
+
 
 include $(TEMPLATE_PATH)/Makefile.common
 
@@ -155,3 +158,8 @@ flash: $(OUTPUT_DIRECTORY)/nrf52832_xxaa.hex
 
 erase:
 	nrfjprog -f nrf52 --eraseall
+
+SDK_CONFIG_FILE := ../config/sdk_config.h
+CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
+sdk_config:
+	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)

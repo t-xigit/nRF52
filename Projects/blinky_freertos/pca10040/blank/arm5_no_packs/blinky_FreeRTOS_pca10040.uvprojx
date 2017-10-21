@@ -6,11 +6,11 @@
   <Header>### uVision Project, (C) Keil Software</Header>
 
   <Targets>    <Target>
-      <TargetName>nrf52840_xxaa</TargetName>
+      <TargetName>nrf52832_xxaa</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
-        <TargetCommonOption>          <Device>nRF52840_xxAA</Device>
+        <TargetCommonOption>          <Device>nRF52832_xxAA</Device>
           <Vendor>Nordic Semiconductor</Vendor>
           <PackID>NordicSemiconductor.nRF_DeviceFamilyPack.8.15.0</PackID>
           <PackURL>http://developer.nordicsemi.com/nRF51_SDK/pieces/nRF_DeviceFamilyPack/</PackURL>          <Cpu>IROM(0x00000000,0x80000) IRAM(0x20000000,0x10000) CPUTYPE("Cortex-M4") FPU2 CLOCK(64000000) ELITTLE</Cpu>
@@ -28,7 +28,7 @@
           <SLE66CMisc></SLE66CMisc>
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
-          <SFDFile>..\..\..\..\..\..\svd\nrf52840.svd</SFDFile>
+          <SFDFile>..\..\..\..\..\..\svd\nrf52.svd</SFDFile>
           <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
@@ -44,7 +44,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\_build\</OutputDirectory>
-          <OutputName>nrf52840_xxaa</OutputName>
+          <OutputName>nrf52832_xxaa</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -275,12 +275,12 @@
               <IRAM>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x40000</Size>
+                <Size>0x10000</Size>
               </IRAM>
               <IROM>
                 <Type>1</Type>
                 <StartAddress>0x0</StartAddress>
-                <Size>0x100000</Size>
+                <Size>0x80000</Size>
               </IROM>
               <XRAM>
                 <Type>0</Type>
@@ -305,7 +305,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x0</StartAddress>
-                <Size>0x100000</Size>
+                <Size>0x80000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -330,7 +330,7 @@
               <OCR_RVCT9>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x40000</Size>
+                <Size>0x10000</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -362,7 +362,7 @@
             <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls>--reduce_paths</MiscControls>
-              <Define> BOARD_PCA10056 CONFIG_GPIO_AS_PINRESET FREERTOS NRF52840_XXAA</Define>
+              <Define> BOARD_PCA10040 CONFIG_GPIO_AS_PINRESET FREERTOS NRF52 NRF52832_XXAA NRF52_PAN_74</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\..\config;..\..\..\..\..\..\components;..\..\..\..\..\..\components\boards;..\..\..\..\..\..\components\drivers_nrf\clock;..\..\..\..\..\..\components\drivers_nrf\common;..\..\..\..\..\..\components\drivers_nrf\gpiote;..\..\..\..\..\..\components\drivers_nrf\hal;..\..\..\..\..\..\components\drivers_nrf\nrf_soc_nosd;..\..\..\..\..\..\components\libraries\atomic;..\..\..\..\..\..\components\libraries\balloc;..\..\..\..\..\..\components\libraries\bsp;..\..\..\..\..\..\components\libraries\button;..\..\..\..\..\..\components\libraries\experimental_log;..\..\..\..\..\..\components\libraries\experimental_log\src;..\..\..\..\..\..\components\libraries\experimental_memobj;..\..\..\..\..\..\components\libraries\experimental_section_vars;..\..\..\..\..\..\components\libraries\strerror;..\..\..\..\..\..\components\libraries\timer;..\..\..\..\..\..\components\libraries\util;..\..\..\..\..\..\components\toolchain;..\..\..;..\..\..\..\..\..\external\freertos\config;..\..\..\..\..\..\external\freertos\portable\ARM\nrf52;..\..\..\..\..\..\external\freertos\portable\CMSIS\nrf52;..\..\..\..\..\..\external\freertos\source\include;..\config</IncludePath>
             </VariousControls>
@@ -378,8 +378,8 @@
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
             <VariousControls>
-              <MiscControls> --cpreproc_opts=-DBOARD_PCA10056,-DCONFIG_GPIO_AS_PINRESET,-DFREERTOS,-DNRF52840_XXAA</MiscControls>
-              <Define> BOARD_PCA10056 CONFIG_GPIO_AS_PINRESET FREERTOS NRF52840_XXAA</Define>
+              <MiscControls> --cpreproc_opts=-DBOARD_PCA10040,-DCONFIG_GPIO_AS_PINRESET,-DFREERTOS,-DNRF52,-DNRF52832_XXAA,-DNRF52_PAN_74</MiscControls>
+              <Define> BOARD_PCA10040 CONFIG_GPIO_AS_PINRESET FREERTOS NRF52 NRF52832_XXAA NRF52_PAN_74</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\..\config;..\..\..\..\..\..\components;..\..\..\..\..\..\components\boards;..\..\..\..\..\..\components\drivers_nrf\clock;..\..\..\..\..\..\components\drivers_nrf\common;..\..\..\..\..\..\components\drivers_nrf\gpiote;..\..\..\..\..\..\components\drivers_nrf\hal;..\..\..\..\..\..\components\drivers_nrf\nrf_soc_nosd;..\..\..\..\..\..\components\libraries\atomic;..\..\..\..\..\..\components\libraries\balloc;..\..\..\..\..\..\components\libraries\bsp;..\..\..\..\..\..\components\libraries\button;..\..\..\..\..\..\components\libraries\experimental_log;..\..\..\..\..\..\components\libraries\experimental_log\src;..\..\..\..\..\..\components\libraries\experimental_memobj;..\..\..\..\..\..\components\libraries\experimental_section_vars;..\..\..\..\..\..\components\libraries\strerror;..\..\..\..\..\..\components\libraries\timer;..\..\..\..\..\..\components\libraries\util;..\..\..\..\..\..\components\toolchain;..\..\..;..\..\..\..\..\..\external\freertos\config;..\..\..\..\..\..\external\freertos\portable\ARM\nrf52;..\..\..\..\..\..\external\freertos\portable\CMSIS\nrf52;..\..\..\..\..\..\external\freertos\source\include;..\config</IncludePath>
             </VariousControls>
@@ -520,19 +520,19 @@
     <filter>
       <targetInfos/>
     </filter>    <package name="CMSIS" url="http://www.keil.com/pack/" vendor="ARM" version="4.5.0">
-      <targetInfos>        <targetInfo name="nrf52840_xxaa" versionMatchMode="fixed"/>      </targetInfos>
+      <targetInfos>        <targetInfo name="nrf52832_xxaa" versionMatchMode="fixed"/>      </targetInfos>
     </package>
     <package name="nRF_DeviceFamilyPack" url="http://developer.nordicsemi.com/nRF51_SDK/pieces/nRF_DeviceFamilyPack/" vendor="NordicSemiconductor" version="8.15.0">
-      <targetInfos>        <targetInfo name="nrf52840_xxaa" versionMatchMode="fixed"/>      </targetInfos>
+      <targetInfos>        <targetInfo name="nrf52832_xxaa" versionMatchMode="fixed"/>      </targetInfos>
     </package>  </packages>
   <apis/>
   <components>    <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="4.3.0" condition="CMSIS Core">
       <package name="CMSIS" url="http://www.keil.com/pack/" vendor="ARM" version="4.5.0"/>
-      <targetInfos>        <targetInfo name="nrf52840_xxaa" versionMatchMode="fixed"/>      </targetInfos>
+      <targetInfos>        <targetInfo name="nrf52832_xxaa" versionMatchMode="fixed"/>      </targetInfos>
     </component>
     <component Cclass="Device" Cgroup="Startup" Cvendor="NordicSemiconductor" Cversion="8.15.0" condition="nRF5x Series CMSIS Device">
       <package name="nRF_DeviceFamilyPack" url="http://developer.nordicsemi.com/nRF51_SDK/pieces/nRF_DeviceFamilyPack/" vendor="NordicSemiconductor" version="8.15.0"/>
-      <targetInfos>        <targetInfo name="nrf52840_xxaa" versionMatchMode="fixed"/>      </targetInfos>
+      <targetInfos>        <targetInfo name="nrf52832_xxaa" versionMatchMode="fixed"/>      </targetInfos>
     </component>  </components>
   <files>  </files>
 </RTE>
