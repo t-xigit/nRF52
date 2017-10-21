@@ -21,6 +21,7 @@
 "Output/tigit Debug/Obj/nrf_balloc.o"
 "Output/tigit Debug/Obj/nrf_memobj.o"
 "Output/tigit Debug/Obj/nrf_strerror.o"
+"Output/tigit Debug/Obj/nrf_cli.o"
 "Output/tigit Debug/Obj/nrf_drv_clock.o"
 "Output/tigit Debug/Obj/nrf_drv_common.o"
 "Output/tigit Debug/Obj/nrf_drv_gpiote.o"

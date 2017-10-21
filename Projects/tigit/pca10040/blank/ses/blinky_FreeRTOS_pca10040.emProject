@@ -1,5 +1,5 @@
 <!DOCTYPE CrossStudio_Project_File>
-<solution Name="blinky_FreeRTOS_pca10040" target="8" version="2">
+<solution Name="shmart_shmart" target="8" version="2">
   <project Name="tigit">
     <configuration
       Name="Common"
@@ -61,6 +61,12 @@
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/balloc/nrf_balloc.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_memobj/nrf_memobj.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/strerror/nrf_strerror.c" />
+      <folder Name="cli">
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/cli/nrf_cli.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/cli/nrf_cli_types.h" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/cli/nrf_cli_vt100.h" />
+      </folder>
+      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/cli/nrf_cli.h" />
     </folder>
     <folder Name="nRF_Drivers">
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/clock/nrf_drv_clock.c" />
