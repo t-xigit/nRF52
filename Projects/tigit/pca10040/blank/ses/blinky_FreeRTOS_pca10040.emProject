@@ -16,7 +16,7 @@
       arm_target_device_name="nRF52832_xxAA"
       arm_target_interface_type="SWD"
       c_preprocessor_definitions="BOARD_PCA10040;CONFIG_GPIO_AS_PINRESET;FREERTOS;INITIALIZE_USER_SECTIONS;NO_VTOR_CONFIG;NRF52;NRF52832_XXAA;NRF52_PAN_74;"
-      c_user_include_directories="../.."
+      c_user_include_directories="../../../config;../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt;../../../../../nRF5_SDK_14.1.0_1dda907/external/fprintf;../../../../../nRF5_SDK_14.1.0_1dda907/components;../../../../../nRF5_SDK_14.1.0_1dda907/external/fprintf;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/queue;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/cli;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/cli/rtt;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/cli;../../../../../nRF5_SDK_14.1.0_1dda907/components/boards;../../../../../nRF5_SDK_14.1.0_1dda907/components/device;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/clock;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/common;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/gpiote;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/hal;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/nrf_soc_nosd;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/atomic;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/balloc;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/bsp;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/button;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/strerror;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_memobj;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_section_vars;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/strerror;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/timer;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/util;../../../../../nRF5_SDK_14.1.0_1dda907/components/toolchain;../../../../../nRF5_SDK_14.1.0_1dda907/components/toolchain/cmsis/include;../../..;../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/config;../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/CMSIS/nrf52;../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/GCC/nrf52;../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/include;../config;"
       debug_register_definition_file="../../../../../nRF5_SDK_14.1.0_1dda907/svd/nrf52.svd"
       debug_start_from_entry_point_symbol="No"
       debug_target_connection="J-Link"
@@ -35,10 +35,9 @@
     </folder>
     <folder Name="nRF_Log">
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src/nrf_log_frontend.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src/nrf_log_backend_rtt.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src/nrf_log_backend_serial.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src/nrf_log_backend_uart.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src/nrf_log_default_backends.c" />
+      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src/nrf_log_backend_serial.c" />
+      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src/nrf_log_backend_rtt.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src/nrf_log_str_formatter.c" />
     </folder>
     <folder Name="Board Definition">
@@ -55,6 +54,12 @@
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/queue.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/tasks.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/timers.c" />
+      <folder Name="FreeRTOS" />
+      <folder Name="Segger_RTT">
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SEGGER_RTT.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SEGGER_RTT_printf.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SEGGER_RTT_Syscalls_SES.c" />
+      </folder>
     </folder>
     <folder Name="nRF_Libraries">
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/button/app_button.c" />
@@ -66,6 +71,13 @@
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/balloc/nrf_balloc.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_memobj/nrf_memobj.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/strerror/nrf_strerror.c" />
+      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/cli/nrf_cli.h" />
+      <folder Name="fprintf">
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/fprintf/nrf_fprintf.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/fprintf/nrf_fprintf.h" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/fprintf/nrf_fprintf_format.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/fprintf/nrf_fprintf_format.h" />
+      </folder>
     </folder>
     <folder Name="nRF_Drivers">
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/clock/nrf_drv_clock.c" />
@@ -74,21 +86,12 @@
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/nrf_soc_nosd/nrf_nvic.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/nrf_soc_nosd/nrf_soc.c" />
     </folder>
-    <folder Name="nRF_Segger_RTT">
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SEGGER_RTT.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SEGGER_RTT_Syscalls_SES.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SEGGER_RTT_printf.c" />
-    </folder>
     <folder Name="Board Support">
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/bsp/bsp.c" />
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/bsp/bsp_nfc.c" />
     </folder>
     <folder Name="Application">
-      <file file_name="../../../main.c">
-        <configuration
-          Name="Common"
-          c_user_include_directories="../config;../../../config;../../..;../../../../../nRF5_SDK_14.1.0_1dda907/components;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/cli;../../../../../nRF5_SDK_14.1.0_1dda907/components/boards;../../../../../nRF5_SDK_14.1.0_1dda907/components/device;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/clock;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/common;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/gpiote;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/hal;../../../../../nRF5_SDK_14.1.0_1dda907/components/drivers_nrf/nrf_soc_nosd;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/atomic;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/balloc;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/queue;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/bsp;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/button;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_log/src;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_memobj;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/experimental_section_vars;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/strerror;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/timer;../../../../../nRF5_SDK_14.1.0_1dda907/components/libraries/util;../../../../../nRF5_SDK_14.1.0_1dda907/components/toolchain;../../../../../nRF5_SDK_14.1.0_1dda907/external/fprintf;../../../../../nRF5_SDK_14.1.0_1dda907/components/toolchain/cmsis/include;../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt;../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/CMSIS/nrf52;../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/config;../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/CMSIS/nrf52;../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/GCC/nrf52;../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/include" />
-      </file>
+      <file file_name="../../../main.c" />
       <file file_name="../config/sdk_config.h" />
     </folder>
     <folder Name="Device">
