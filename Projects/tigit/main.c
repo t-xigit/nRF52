@@ -30,8 +30,8 @@
 #error "Board is not equipped with enough amount of LEDs"
 #endif
 
-#define TASK_DELAY        200           /**< Task delay. Delays a LED0 task for 200 ms */
-#define TIMER_PERIOD      400          /**< Timer period. LED1 timer will expire after 1000 ms */
+#define TASK_DELAY        800           /**< Task delay. Delays a LED0 task for 200 ms */
+#define TIMER_PERIOD      500          /**< Timer period. LED1 timer will expire after 1000 ms */
 
 TaskHandle_t  led_toggle_task_handle;   /**< Reference to LED0 toggling FreeRTOS task. */
 TimerHandle_t led_toggle_timer_handle;  /**< Reference to LED1 toggling FreeRTOS timer. */
