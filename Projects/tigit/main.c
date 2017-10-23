@@ -21,7 +21,6 @@
 #include "sdk_errors.h"
 #include "app_error.h"
 
-
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
@@ -33,9 +32,6 @@
 #define TASK_DELAY        800           /**< Task delay. Delays a LED0 task for 200 ms */
 #define TIMER_PERIOD      500          /**< Timer period. LED1 timer will expire after 1000 ms */
 
-TaskHandle_t  led_toggle_task_handle;   /**< Reference to LED0 toggling FreeRTOS task. */
-TimerHandle_t led_toggle_timer_handle;  /**< Reference to LED1 toggling FreeRTOS timer. */
-
 /**@brief Function for initializing the nrf log module. */
 static void log_init(void)
 {
@@ -46,6 +42,7 @@ static void log_init(void)
     NRF_LOG_INFO("log_init()\n\r");
 }
 
+TaskHandle_t  led_toggle_task_handle;   /**< Reference to LED0 toggling FreeRTOS task. */
 /**@brief LED0 task entry function.
  *
  * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
@@ -61,10 +58,28 @@ static void led_toggle_task_function (void * pvParameter)
         /* Delay a task for a given number of ticks */
         vTaskDelay(TASK_DELAY);
 
-        /* Tasks must be implemented to never return... */
     }
 }
 
+TaskHandle_t  timer_task_handle;   /**< Reference to LED0 toggling FreeRTOS task. */
+/**@brief TimerTask task entry function.
+ *
+ * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
+ */
+static void timer_task_function (void * pvParameter)
+{
+    UNUSED_PARAMETER(pvParameter);
+    while (true)
+    {
+        /* Block to wait for timer to notify this task. */
+        ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+
+        bsp_board_led_invert(BSP_BOARD_LED_1);
+        NRF_LOG_INFO("TIMER TASK\n\r");
+    }
+}
+
+TimerHandle_t led_toggle_timer_handle;  /**< Reference to LED1 toggling FreeRTOS timer. */
 /**@brief The function to call when the LED1 FreeRTOS timer expires.
  *
  * @param[in] pvParameter   Pointer that will be used as the parameter for the timer.
@@ -72,8 +87,9 @@ static void led_toggle_task_function (void * pvParameter)
 static void led_toggle_timer_callback (void * pvParameter)
 {
     UNUSED_PARAMETER(pvParameter);
-    //NRF_LOG_INFO("TIMER\n\r");
-    bsp_board_led_invert(BSP_BOARD_LED_1);
+    /* Send a notification to prvTask1(), bringing it out of the Blocked state. */
+    xTaskNotifyGive( timer_task_handle );
+    
 }
 
 int main(void)
@@ -91,6 +107,10 @@ int main(void)
 
     /* Create task for LED0 blinking with priority set to 2 */
     UNUSED_VARIABLE(xTaskCreate(led_toggle_task_function, "LED0", configMINIMAL_STACK_SIZE + 200, NULL, 2, &led_toggle_task_handle));
+
+    /* Create task for timer with priority set to 2 */
+    UNUSED_VARIABLE(xTaskCreate(timer_task_function, "TimTask", configMINIMAL_STACK_SIZE + 200, NULL, 2, &timer_task_handle));
+
 
     /* Start timer for LED1 blinking */
     led_toggle_timer_handle = xTimerCreate( "LED1", TIMER_PERIOD, pdTRUE, NULL, led_toggle_timer_callback);
