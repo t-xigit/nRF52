@@ -33,7 +33,8 @@
 #endif
 
 #define TASK_DELAY        800           /**< Task delay. Delays a LED0 task for 200 ms */
-#define TIMER_PERIOD      500          /**< Timer period. LED1 timer will expire after 1000 ms */
+#define TIMER_PERIOD      500           /**< Timer period. LED1 timer will expire after 1000 ms */
+#define RTC_PERIOD        1000000ULL    /**< Timer period. LED1 timer will expire after 1000 ms */
 /**
  * @brief RTC instance number used for blinking
  *
@@ -49,7 +50,7 @@
 /**
  * @brief Number of RTC ticks between interrupts
  */
-#define BLINK_RTC_TICKS   (RTC_US_TO_TICKS(500000ULL, RTC_DEFAULT_CONFIG_FREQUENCY))
+#define BLINK_RTC_TICKS   (RTC_US_TO_TICKS(RTC_PERIOD, RTC_DEFAULT_CONFIG_FREQUENCY))
 
 
 /**@brief Function for initializing the nrf log module. */
@@ -115,7 +116,7 @@ static void blink_rtc_handler(nrf_drv_rtc_int_type_t int_type)
 {
     BaseType_t yield_req = pdFALSE;
     ret_code_t err_code;
-    bsp_board_led_invert(BSP_BOARD_LED_1);
+    bsp_board_led_invert(BSP_BOARD_LED_3);
     err_code = nrf_drv_rtc_cc_set(
         &m_rtc,
         BLINK_RTC_CC,
@@ -123,13 +124,14 @@ static void blink_rtc_handler(nrf_drv_rtc_int_type_t int_type)
         true);
     APP_ERROR_CHECK(err_code);
 
+    NRF_LOG_INFO("INTERUPT\n\r");
    /* The returned value may be safely ignored, if error is returned it only means that
     * the semaphore is already given (raised). */
    UNUSED_VARIABLE(xSemaphoreGiveFromISR(m_led_semaphore, &yield_req));
    portYIELD_FROM_ISR(yield_req);
 }
 
-TaskHandle_t  led_toggle_task_handle;   /**< Reference to LED0 toggling FreeRTOS task. */
+TaskHandle_t led_toggle_task_handle; /**< Reference to LED0 toggling FreeRTOS task. */
 /**@brief LED0 task entry function.
  *
  * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
@@ -145,13 +147,17 @@ static void led_toggle_task_function (void * pvParameter)
     APP_ERROR_CHECK(err_code);
     nrf_drv_rtc_enable(&m_rtc);
 
+    m_led_semaphore = xSemaphoreCreateBinary();
+    ASSERT(NULL != m_led_semaphore);
+
     while (true)
     {
         bsp_board_led_invert(BSP_BOARD_LED_0);
-        NRF_LOG_INFO("TASK\n\r");
+        NRF_LOG_INFO("INTERUPT TASK\n\r");
 
         /* Delay a task for a given number of ticks */
-        vTaskDelay(TASK_DELAY);
+        UNUSED_RETURN_VALUE(xSemaphoreTake(m_led_semaphore, portMAX_DELAY));
+        //vTaskDelay(TASK_DELAY);
 
     }
 }
