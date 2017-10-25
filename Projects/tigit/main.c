@@ -11,6 +11,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <time.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -100,19 +101,34 @@ static void led_toggle_timer_callback (void * pvParameter)
 static SemaphoreHandle_t m_led_semaphore;
 
 /**
- * @brief RTC configuration
+ * @brief Function to convert Unix time into string and print it
  */
-static nrf_drv_rtc_config_t const m_rtc_config = NRF_DRV_RTC_DEFAULT_CONFIG;
+void print_time(time_t *unix_time_ms)
+{
+	#define PRINT_BUFFER_SIZE 80
+	//const time_t timezone_delta = 60 * 60 * 2;
+	struct tm asctime;
+	time_t time;
+	char print_buffer[PRINT_BUFFER_SIZE];
+
+	uint64_t temp_time = *unix_time_ms;
+
+	time = (time_t)(temp_time);
+	//time = time + timezone_delta;
+
+	asctime = *localtime(&time);
+
+	strftime(print_buffer, sizeof(print_buffer), "%H:%M:%S %Y-%m-%d", &asctime);
+        NRF_LOG_INFO("%s\n", print_buffer);
+}
 
 /**
- * @brief RTC instance
- *
- * Instance of the RTC used for led blinking
+ * @brief RTC configuration & instance
  */
+static nrf_drv_rtc_config_t const m_rtc_config = NRF_DRV_RTC_DEFAULT_CONFIG;
 static nrf_drv_rtc_t const m_rtc = NRF_DRV_RTC_INSTANCE(BLINK_RTC);
 
-
-static void blink_rtc_handler(nrf_drv_rtc_int_type_t int_type)
+static void rtc_int_handler(nrf_drv_rtc_int_type_t int_type)
 {
     BaseType_t yield_req = pdFALSE;
     ret_code_t err_code;
@@ -124,24 +140,25 @@ static void blink_rtc_handler(nrf_drv_rtc_int_type_t int_type)
         true);
     APP_ERROR_CHECK(err_code);
 
-    NRF_LOG_INFO("INTERUPT\n\r");
+    NRF_LOG_INFO("RTC INTERUPT\n\r");
    /* The returned value may be safely ignored, if error is returned it only means that
     * the semaphore is already given (raised). */
    UNUSED_VARIABLE(xSemaphoreGiveFromISR(m_led_semaphore, &yield_req));
    portYIELD_FROM_ISR(yield_req);
 }
 
-TaskHandle_t led_toggle_task_handle; /**< Reference to LED0 toggling FreeRTOS task. */
+TaskHandle_t rtc_task_handle; /**< Reference to LED0 toggling FreeRTOS task. */
 /**@brief LED0 task entry function.
  *
  * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
  */
-static void led_toggle_task_function (void * pvParameter)
+static void rtc_task_function (void * pvParameter)
 {
     ret_code_t err_code;
+    time_t unix_time = 0;
     UNUSED_PARAMETER(pvParameter);
 
-    err_code = nrf_drv_rtc_init(&m_rtc, &m_rtc_config, blink_rtc_handler);
+    err_code = nrf_drv_rtc_init(&m_rtc, &m_rtc_config, rtc_int_handler);
     APP_ERROR_CHECK(err_code);
     err_code = nrf_drv_rtc_cc_set(&m_rtc, BLINK_RTC_CC, BLINK_RTC_TICKS, true);
     APP_ERROR_CHECK(err_code);
@@ -153,7 +170,9 @@ static void led_toggle_task_function (void * pvParameter)
     while (true)
     {
         bsp_board_led_invert(BSP_BOARD_LED_0);
-        NRF_LOG_INFO("INTERUPT TASK\n\r");
+        NRF_LOG_INFO("RTC TASK\n\r");
+        print_time(&unix_time);
+        unix_time++;
 
         /* Delay a task for a given number of ticks */
         UNUSED_RETURN_VALUE(xSemaphoreTake(m_led_semaphore, portMAX_DELAY));
@@ -176,7 +195,7 @@ int main(void)
     bsp_board_leds_init();
 
     /* Create task for LED0 blinking with priority set to 2 */
-    UNUSED_VARIABLE(xTaskCreate(led_toggle_task_function, "LED0", configMINIMAL_STACK_SIZE + 200, NULL, 2, &led_toggle_task_handle));
+    UNUSED_VARIABLE(xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle));
 
     /* Create task for timer with priority set to 2 */
     UNUSED_VARIABLE(xTaskCreate(timer_task_function, "TimTask", configMINIMAL_STACK_SIZE + 200, NULL, 2, &timer_task_handle));
