@@ -77,6 +77,7 @@
  */
 #define FREERTOS_USE_RTC      0 /**< Use real time clock for the system */
 #define FREERTOS_USE_SYSTICK  1 /**< Use SysTick timer for system */
+#define NRF_LOG_USES_SYSVIEW  1
 
 /*-----------------------------------------------------------
  * Application specific definitions.
@@ -240,5 +241,11 @@ standard names - or at least those used in the unmodified vector table. */
      *    convenient for debugging.
      */
 #define configUSE_DISABLE_TICK_AUTO_CORRECTION_DEBUG     0
+
+#ifdef NRF_LOG_USES_SYSVIEW
+#if (NRF_LOG_USES_SYSVIEW == 1)
+#include "SEGGER_SYSVIEW_FreeRTOS.h"
+#endif
+#endif
 
 #endif /* FREERTOS_CONFIG_H */

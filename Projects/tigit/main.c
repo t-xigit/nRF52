@@ -27,6 +27,8 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
+#include "SEGGER_SYSVIEW.h"
+
 #include "nrf_drv_rtc.h"
 
 #if LEDS_NUMBER <= 2
@@ -59,6 +61,8 @@ static void log_init(void)
 {
     ret_code_t err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
+
+    SEGGER_SYSVIEW_Conf(); /* Configure and initialize SystemView */
 
     NRF_LOG_DEFAULT_BACKENDS_INIT();
     NRF_LOG_INFO("log_init()\n\r");
