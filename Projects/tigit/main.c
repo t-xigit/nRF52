@@ -19,6 +19,7 @@
 #include "timers.h"
 #include "bsp.h"
 #include "nordic_common.h"
+#include "boards.h"
 #include "nrf_drv_clock.h"
 #include "sdk_errors.h"
 #include "app_error.h"
@@ -55,17 +56,17 @@
  */
 #define BLINK_RTC_TICKS   (RTC_US_TO_TICKS(RTC_PERIOD, RTC_DEFAULT_CONFIG_FREQUENCY))
 
-
 /**@brief Function for initializing the nrf log module. */
 static void log_init(void)
 {
     ret_code_t err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
-
-    SEGGER_SYSVIEW_Conf(); /* Configure and initialize SystemView */
-
     NRF_LOG_DEFAULT_BACKENDS_INIT();
     NRF_LOG_INFO("log_init()\n\r");
+
+    NRF_LOG_INFO("SEGGER_SYSVIEW_Conf()\n\r");
+    SEGGER_SYSVIEW_Conf(); /* Configure and initialize SystemView */
+
 }
 
 TaskHandle_t  timer_task_handle;   /**< Reference to LED0 toggling FreeRTOS task. */
@@ -83,6 +84,59 @@ static void timer_task_function (void * pvParameter)
 
         bsp_board_led_invert(BSP_BOARD_LED_1);
         NRF_LOG_INFO("TIMER TASK\n\r");
+    }
+}
+
+TaskHandle_t  button_task_handle;   /**< Reference to button task. */
+/**@brief Button task entry function.
+ *
+ * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
+ */
+static void button_task_function (void * pvParameter)
+{
+    #define BUTTON_TASK_DELAY 100 // 100ms
+    UNUSED_PARAMETER(pvParameter);
+
+    uint32_t button_1_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_0);
+    uint32_t button_2_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_1);
+    uint32_t button_3_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_2);
+    uint32_t button_4_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_3);
+
+    /* initializing buttons*/
+    bsp_board_buttons_init();
+
+    while (true)
+    {
+        /* Block to wait for next poll*/
+        vTaskDelay(BUTTON_TASK_DELAY);
+
+        if(bsp_board_button_state_get(button_1_idx))
+        {
+              NRF_LOG_INFO("BUTTON 1\n\r");
+              /* Block to debounce*/
+              vTaskDelay(BUTTON_TASK_DELAY*2);
+        }
+               
+        if(bsp_board_button_state_get(button_2_idx))
+        {
+              NRF_LOG_INFO("BUTTON 2\n\r");
+              /* Block to debounce*/
+              vTaskDelay(BUTTON_TASK_DELAY*2);
+        }
+
+        if(bsp_board_button_state_get(button_3_idx))
+        {
+              NRF_LOG_INFO("BUTTON 3\n\r");
+              /* Block to debounce*/
+              vTaskDelay(BUTTON_TASK_DELAY*2);
+        }
+
+        if(bsp_board_button_state_get(button_4_idx))
+        {
+              NRF_LOG_INFO("BUTTON 4\n\r");
+              /* Block to debounce*/
+              vTaskDelay(BUTTON_TASK_DELAY*2);
+        }
     }
 }
 
@@ -180,8 +234,6 @@ static void rtc_task_function (void * pvParameter)
 
         /* Delay a task for a given number of ticks */
         UNUSED_RETURN_VALUE(xSemaphoreTake(m_led_semaphore, portMAX_DELAY));
-        //vTaskDelay(TASK_DELAY);
-
     }
 }
 
@@ -202,11 +254,13 @@ int main(void)
     UNUSED_VARIABLE(xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle));
 
     /* Create task for timer with priority set to 2 */
-    UNUSED_VARIABLE(xTaskCreate(timer_task_function, "TimTask", configMINIMAL_STACK_SIZE + 200, NULL, 2, &timer_task_handle));
+    UNUSED_VARIABLE(xTaskCreate(timer_task_function, "TIM", configMINIMAL_STACK_SIZE + 200, NULL, 2, &timer_task_handle));
 
+    /* Create task for button handling with priority set to 2 */
+    UNUSED_VARIABLE(xTaskCreate(button_task_function, "BUT", configMINIMAL_STACK_SIZE + 200, NULL, 2, &button_task_handle));
 
-    /* Start timer for LED1 blinking */
     led_toggle_timer_handle = xTimerCreate( "LED1", TIMER_PERIOD, pdTRUE, NULL, led_toggle_timer_callback);
+    /* Start timer for LED1 blinking */
     UNUSED_VARIABLE(xTimerStart(led_toggle_timer_handle, 0));
 
     /* Activate deep sleep mode */
