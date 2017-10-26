@@ -95,9 +95,12 @@ TaskHandle_t  button_task_handle;   /**< Reference to button task. */
 static void button_task_function (void * pvParameter)
 {
     #define BUTTON_TASK_DELAY 100 // 100ms
+    UNUSED_PARAMETER(pvParameter);
 
     uint32_t button_1_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_0);
-    UNUSED_PARAMETER(pvParameter);
+    uint32_t button_2_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_1);
+    uint32_t button_3_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_2);
+    uint32_t button_4_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_3);
 
     /* initializing buttons*/
     bsp_board_buttons_init();
@@ -110,7 +113,22 @@ static void button_task_function (void * pvParameter)
         if(bsp_board_button_state_get(button_1_idx))
         {
               NRF_LOG_INFO("BUTTON 1\n\r");
-        }       
+        }
+               
+        if(bsp_board_button_state_get(button_2_idx))
+        {
+              NRF_LOG_INFO("BUTTON 2\n\r");
+        }
+
+        if(bsp_board_button_state_get(button_3_idx))
+        {
+              NRF_LOG_INFO("BUTTON 3\n\r");
+        }
+
+        if(bsp_board_button_state_get(button_4_idx))
+        {
+              NRF_LOG_INFO("BUTTON 4\n\r");
+        }
     }
 }
 
