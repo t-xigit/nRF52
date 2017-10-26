@@ -65,7 +65,7 @@ static void log_init(void)
     NRF_LOG_INFO("log_init()\n\r");
 
     NRF_LOG_INFO("SEGGER_SYSVIEW_Conf()\n\r");
-   // SEGGER_SYSVIEW_Conf(); /* Configure and initialize SystemView */
+    SEGGER_SYSVIEW_Conf(); /* Configure and initialize SystemView */
 
 }
 
@@ -113,21 +113,29 @@ static void button_task_function (void * pvParameter)
         if(bsp_board_button_state_get(button_1_idx))
         {
               NRF_LOG_INFO("BUTTON 1\n\r");
+              /* Block to debounce*/
+              vTaskDelay(BUTTON_TASK_DELAY*2);
         }
                
         if(bsp_board_button_state_get(button_2_idx))
         {
               NRF_LOG_INFO("BUTTON 2\n\r");
+              /* Block to debounce*/
+              vTaskDelay(BUTTON_TASK_DELAY*2);
         }
 
         if(bsp_board_button_state_get(button_3_idx))
         {
               NRF_LOG_INFO("BUTTON 3\n\r");
+              /* Block to debounce*/
+              vTaskDelay(BUTTON_TASK_DELAY*2);
         }
 
         if(bsp_board_button_state_get(button_4_idx))
         {
               NRF_LOG_INFO("BUTTON 4\n\r");
+              /* Block to debounce*/
+              vTaskDelay(BUTTON_TASK_DELAY*2);
         }
     }
 }
