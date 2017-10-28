@@ -44,17 +44,18 @@
       <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/components/boards/boards.c" />
     </folder>
     <folder Name="Third Parties">
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/croutine.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/event_groups.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/portable/MemMang/heap_1.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/list.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/GCC/nrf52/port.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/CMSIS/nrf52/port_cmsis.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/CMSIS/nrf52/port_cmsis_systick.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/queue.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/tasks.c" />
-      <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/timers.c" />
-      <folder Name="FreeRTOS" />
+      <folder Name="FreeRTOS">
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/croutine.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/event_groups.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/portable/MemMang/heap_1.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/GCC/nrf52/port.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/CMSIS/nrf52/port_cmsis_systick.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/tasks.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/portable/CMSIS/nrf52/port_cmsis.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/queue.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/list.c" />
+        <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/freertos/source/timers.c" />
+      </folder>
       <folder Name="Segger_RTT">
         <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SEGGER_RTT.c" />
         <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SEGGER_RTT_printf.c" />
@@ -64,6 +65,14 @@
           <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SystemView_V252a/Src/Sample//FreeRTOSV8/Config/SEGGER_SYSVIEW_Config_FreeRTOS.c" />
           <file file_name="../../../../../nRF5_SDK_14.1.0_1dda907/external/segger_rtt/SystemView_V252a/Src/Segger/SEGGER_SYSVIEW.c" />
         </folder>
+      </folder>
+      <folder Name="WINC1500">
+        <folder Name="bsp" />
+		<folder Name="socket" />
+		<folder Name="bus_wrapper" />
+		<folder Name="common" />
+		<folder Name="spi_flash" />
+		<folder Name="driver" />
       </folder>
     </folder>
     <folder Name="nRF_Libraries">
