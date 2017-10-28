@@ -47,15 +47,16 @@
 #include "conf_winc.h"
 #include "app_util_platform.h"
 #include "nrf_drv_spi.h"
-#include "gpio_nello_one.h"
+#include "gpio_one.h"
 
 
 #define NM_BUS_MAX_TRX_SZ	256
 
 #define SPI_INSTANCE  0 /**< SPI instance index. */
 
+nrf_drv_spi_config_t spi_config = NRF_DRV_SPI_DEFAULT_CONFIG;
 static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);  /**< SPI instance. */
-nrf_drv_spi_config_t spi_config = NRF_DRV_SPI_DEFAULT_CONFIG(SPI_INSTANCE);
+
 
 tstrNmBusCapabilities egstrNmBusCapabilities =
 {
@@ -288,7 +289,7 @@ sint8 nm_bus_init(void *pvinit)
 	spi_config.orc = 0;
 
 	nrf_gpio_cfg_input(AT_IQRN_PIN,NRF_GPIO_PIN_NOPULL);
-	APP_ERROR_CHECK(nrf_drv_spi_init(&spi, &spi_config, NULL));
+	APP_ERROR_CHECK(nrf_drv_spig_init(&spi, &spi_config, NULL));
 
 	nm_bsp_reset();
 	nm_bsp_sleep(1);

@@ -44,7 +44,7 @@
 //#include "asf.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
-#include "gpio_nello_one.h"
+#include "gpio_one.h"
 
 static tpfNmBspIsr gpfIsr;
 

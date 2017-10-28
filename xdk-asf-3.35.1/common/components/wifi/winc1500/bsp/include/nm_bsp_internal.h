@@ -111,6 +111,10 @@
 #include "nm_bsp_nrf51822.h"
 #endif
 
+#ifdef NRF52
+#include "nm_bsp_nrf52.h"
+#endif
+
 #ifdef _ARDUINO_UNO_
 #include "bsp/include/nm_bsp_arduino_uno.h"
 #endif
