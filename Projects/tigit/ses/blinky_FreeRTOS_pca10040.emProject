@@ -86,7 +86,9 @@
           <file file_name="../../../xdk-asf-3.35.1/common/components/wifi/winc1500/common/include/nm_common.h" />
           <file file_name="../../../xdk-asf-3.35.1/common/components/wifi/winc1500/common/include/nm_debug.h" />
         </folder>
-        <folder Name="spi_flash" />
+        <folder Name="spi_flash">
+          <file file_name="../../../xdk-asf-3.35.1/common/components/wifi/winc1500/spi_flash/source/spi_flash.c" />
+        </folder>
         <folder Name="driver">
           <file file_name="../../../xdk-asf-3.35.1/common/components/wifi/winc1500/driver/source/m2m_ate_mode.c" />
           <file file_name="../../../xdk-asf-3.35.1/common/components/wifi/winc1500/driver/source/m2m_crypto.c" />
