@@ -164,6 +164,8 @@ static void button_task_function (void * pvParameter)
         if(bsp_board_button_state_get(button_1_idx))
         {
               NRF_LOG_INFO("BUTTON 1\n\r");
+              NRF_LOG_INFO("m2m_wifi_req_curr_rssi\n\r");
+              m2m_wifi_req_curr_rssi();
               /* Block to debounce*/
               vTaskDelay(BUTTON_TASK_DELAY*2);
         }
@@ -282,8 +284,7 @@ static void rtc_task_function (void * pvParameter)
         if(unix_time)
         {
           print_time(&unix_time);
-          unix_time++;
-          m2m_wifi_req_curr_rssi();
+          unix_time++;          
         }                
 
         /* Delay a task for a given number of ticks */
