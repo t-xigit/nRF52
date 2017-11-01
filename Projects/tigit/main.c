@@ -62,6 +62,50 @@
  */
 #define BLINK_RTC_TICKS   (RTC_US_TO_TICKS(RTC_PERIOD, RTC_DEFAULT_CONFIG_FREQUENCY))
 
+
+// WIFI Stuff
+
+/** Wi-Fi Settings */
+#define MAIN_WLAN_SSID         "Schluesseldienst"
+#define MAIN_WLAN_AUTH          M2M_WIFI_SEC_WPA_PSK
+#define MAIN_WLAN_PSK          "4YGp7XL8BDEbkUwM"
+
+/** PowerSave mode Settings */
+#define MAIN_PS_SLEEP_MODE          M2M_PS_DEEP_AUTOMATIC /* M2M_NO_PS / M2M_PS_DEEP_AUTOMATIC / M2M_PS_MANUAL */
+
+/** Using NTP server information */
+#define MAIN_WORLDWIDE_NTP_POOL_HOSTNAME        "pool.ntp.org"
+#define MAIN_ASIA_NTP_POOL_HOSTNAME             "asia.pool.ntp.org"
+#define MAIN_EUROPE_NTP_POOL_HOSTNAME           "europe.pool.ntp.org"
+#define MAIN_NAMERICA_NTP_POOL_HOSTNAME         "north-america.pool.ntp.org"
+#define MAIN_OCEANIA_NTP_POOL_HOSTNAME          "oceania.pool.ntp.org"
+#define MAIN_SAMERICA_NTP_POOL_HOSTNAME         "south-america.pool.ntp.org"
+#define MAIN_SERVER_PORT_FOR_UDP                (123)
+#define MAIN_DEFAULT_ADDRESS                    0xFFFFFFFF /* "255.255.255.255" */
+#define MAIN_DEFAULT_PORT                       (6666)
+#define MAIN_WIFI_M2M_BUFFER_SIZE               1460
+
+/** Wi-Fi status variable. */
+static bool gbConnectedWifi = false;
+/** Host name placeholder. */
+static char dns_server_address[HOSTNAME_MAX_SIZE];
+
+/** UDP socket handlers. */
+static SOCKET udp_socket = -1;
+
+/** Receive buffer definition. */
+static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE];
+
+/** Wi-Fi Sleep status. */
+static uint8 gu8SleepStatus;
+
+
+tstrWifiInitParam param;
+    int8_t ret;
+// WIFI Stuff
+
+
+
 /**@brief Function for initializing the nrf log module. */
 static void log_init(void)
 {
@@ -243,40 +287,6 @@ static void rtc_task_function (void * pvParameter)
     }
 }
 
-/** Wi-Fi Settings */
-#define MAIN_WLAN_SSID         "Schluesseldienst"
-#define MAIN_WLAN_AUTH          M2M_WIFI_SEC_WPA_PSK
-#define MAIN_WLAN_PSK          "4YGp7XL8BDEbkUwM"
-
-/** PowerSave mode Settings */
-#define MAIN_PS_SLEEP_MODE          M2M_PS_DEEP_AUTOMATIC /* M2M_NO_PS / M2M_PS_DEEP_AUTOMATIC / M2M_PS_MANUAL */
-
-/** Using NTP server information */
-#define MAIN_WORLDWIDE_NTP_POOL_HOSTNAME        "pool.ntp.org"
-#define MAIN_ASIA_NTP_POOL_HOSTNAME             "asia.pool.ntp.org"
-#define MAIN_EUROPE_NTP_POOL_HOSTNAME           "europe.pool.ntp.org"
-#define MAIN_NAMERICA_NTP_POOL_HOSTNAME         "north-america.pool.ntp.org"
-#define MAIN_OCEANIA_NTP_POOL_HOSTNAME          "oceania.pool.ntp.org"
-#define MAIN_SAMERICA_NTP_POOL_HOSTNAME         "south-america.pool.ntp.org"
-#define MAIN_SERVER_PORT_FOR_UDP                (123)
-#define MAIN_DEFAULT_ADDRESS                    0xFFFFFFFF /* "255.255.255.255" */
-#define MAIN_DEFAULT_PORT                       (6666)
-#define MAIN_WIFI_M2M_BUFFER_SIZE               1460
-
-/** Wi-Fi status variable. */
-static bool gbConnectedWifi = false;
-/** Host name placeholder. */
-static char dns_server_address[HOSTNAME_MAX_SIZE];
-
-/** UDP socket handlers. */
-static SOCKET udp_socket = -1;
-
-/** Receive buffer definition. */
-static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE];
-
-/** Wi-Fi Sleep status. */
-static uint8 gu8SleepStatus;
-
 /**
  * \brief Callback to get the Wi-Fi status update.
  *
@@ -372,7 +382,7 @@ static void resolve_cb(uint8_t *pu8DomainName, uint32_t u32ServerIP)
  * \param[in] u8Msg Type of Socket notification.
  * \param[in] pvMsg A structure contains notification informations.
  */
-static void socket_cb(SOCKET sock, uint8_t u8Msg, void *pvMsg)
+static void  socket_cb(SOCKET sock, uint8_t u8Msg, void *pvMsg)
 {
 	/* Check for socket event on socket. */
 	int16_t ret;
@@ -440,21 +450,18 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void *pvMsg)
 	}
 }
 
-int main(void)
-{
-    ret_code_t err_code;
+TaskHandle_t wifi_task_handle; /**< Reference to LED0 toggling FreeRTOS task. */
+SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in RTC event */
+/**@brief LED0 task entry function.
+ *
+ * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
+ */
+static void wifi_task_function (void * pvParameter)
+{    
+    UNUSED_PARAMETER(pvParameter);
 
-    tstrWifiInitParam param;
-    int8_t ret;
-
-    log_init();
-
-    /* Initialize clock driver for better time accuracy in FREERTOS */
-    err_code = nrf_drv_clock_init();
-    APP_ERROR_CHECK(err_code);
-
-    /* Configure LED-pins as outputs */
-    bsp_board_leds_init();
+    m_winc_int_semaphore = xSemaphoreCreateBinary();
+    ASSERT(NULL != m_winc_int_semaphore);
 
     /* Initialize the BSP. */
     nm_bsp_init();
@@ -475,7 +482,7 @@ int main(void)
 
     /* Initialize socket interface. */
     socketInit();
-    registerSocketCallback(socket_cb, resolve_cb);
+    registerSocketCallback((tpfAppSocketCb) socket_cb, (tpfAppResolveCb) resolve_cb);
 
     /* Set defined sleep mode */
     if (MAIN_PS_SLEEP_MODE == M2M_PS_MANUAL) {
@@ -494,13 +501,36 @@ int main(void)
     /* Connect to defined AP. */
     m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (void *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
 
-    while (1) {          
+    while (true)
+    {
+        bsp_board_led_invert(BSP_BOARD_LED_3);
+        NRF_LOG_INFO("WIFI TASK\n\r");
 
-            while (m2m_wifi_handle_events(NULL) != M2M_SUCCESS) {
+         while (1)
+         {           
+            while (m2m_wifi_handle_events(NULL) != M2M_SUCCESS) 
+            {
             }
+            /* Delay a task for a given number of ticks */
+            UNUSED_RETURN_VALUE(xSemaphoreTake(m_winc_int_semaphore, portMAX_DELAY));
+        }
+
+       
     }
+}
 
+int main(void)
+{
+    ret_code_t err_code;    
 
+    log_init();
+
+    /* Initialize clock driver for better time accuracy in FREERTOS */
+    err_code = nrf_drv_clock_init();
+    APP_ERROR_CHECK(err_code);
+
+    /* Configure LED-pins as outputs */
+    bsp_board_leds_init();
 
     /* Create task for LED0 blinking with priority set to 2 */
     UNUSED_VARIABLE(xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle));
@@ -510,6 +540,9 @@ int main(void)
 
     /* Create task for button handling with priority set to 2 */
     UNUSED_VARIABLE(xTaskCreate(button_task_function, "BUT", configMINIMAL_STACK_SIZE + 200, NULL, 2, &button_task_handle));
+
+    /* Create task for LED0 blinking with priority set to 2 */
+    UNUSED_VARIABLE(xTaskCreate(wifi_task_function, "LAN", configMINIMAL_STACK_SIZE + 800, NULL, 2, &wifi_task_handle));
 
     led_toggle_timer_handle = xTimerCreate( "LED1", TIMER_PERIOD, pdTRUE, NULL, led_toggle_timer_callback);
     /* Start timer for LED1 blinking */

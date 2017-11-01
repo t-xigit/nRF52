@@ -42,6 +42,10 @@
 #include "bsp/include/nm_bsp.h"
 #include "common/include/nm_common.h"
 //#include "asf.h"
+
+#include "FreeRTOS.h"
+#include "semphr.h"
+
 #include "nrf_gpio.h"
 #include "nrf_gpiote.h"
 #include "nrf_delay.h"
@@ -201,10 +205,17 @@ void nm_bsp_sleep(uint32 u32TimeMsec)
 	}
 }
 
+extern SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in RTC event */
+
 void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
+    BaseType_t yield_req = pdFALSE;
     chip_isr();
     NRF_LOG_DEBUG("WINC INT\n\r")
+
+    UNUSED_VARIABLE(xSemaphoreGiveFromISR(m_winc_int_semaphore, &yield_req));
+    portYIELD_FROM_ISR(yield_req);
+
 }
 
 /**
