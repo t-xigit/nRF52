@@ -9,6 +9,9 @@
  *
  */
 
+ //http://www.atmel.com/Images/Atmel-42388-ATWINC1500-Xplained-Pro_UserGuide.pdf
+ // page 7
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
@@ -241,9 +244,9 @@ static void rtc_task_function (void * pvParameter)
 }
 
 /** Wi-Fi Settings */
-#define MAIN_WLAN_SSID         "DEMO_AP"
+#define MAIN_WLAN_SSID         "Schluesseldienst"
 #define MAIN_WLAN_AUTH          M2M_WIFI_SEC_WPA_PSK
-#define MAIN_WLAN_PSK          "12345678"
+#define MAIN_WLAN_PSK          "4YGp7XL8BDEbkUwM"
 
 /** Using NTP server information */
 #define MAIN_WORLDWIDE_NTP_POOL_HOSTNAME        "pool.ntp.org"

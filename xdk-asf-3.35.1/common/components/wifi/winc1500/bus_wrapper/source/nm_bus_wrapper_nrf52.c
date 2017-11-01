@@ -283,13 +283,12 @@ sint8 nm_bus_init(void *pvinit)
 	//spi_config.frequency	= NRF_SPI_FREQ_125K;
 	//spi_config.frequency = NRF_SPI_FREQ_1M;
 	spi_config.frequency = NRF_SPI_FREQ_4M;
-	//spi_config.mode			= NRF_SPI_MODE_0;
 
 	//This is the value being clocked out on the MOSI line will reading
 	spi_config.orc = 0;
 
 	nrf_gpio_cfg_input(AT_IQRN_PIN,NRF_GPIO_PIN_NOPULL);
-	APP_ERROR_CHECK(nrf_drv_spig_init(&spi, &spi_config, NULL));
+	APP_ERROR_CHECK(nrf_drv_spi_init(&spi, &spi_config, NULL, NULL));
 
 	nm_bsp_reset();
 	nm_bsp_sleep(1);
