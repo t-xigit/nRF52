@@ -101,7 +101,6 @@ static uint8 gu8SleepStatus;
 
 
 tstrWifiInitParam param;
-int8_t ret;
 
 tstrSystemTime  *sys_time;
 // WIFI Stuff
@@ -484,6 +483,8 @@ static void wifi_task_function (void * pvParameter)
 {    
     UNUSED_PARAMETER(pvParameter);
 
+    sint8 ret = M2M_SUCCESS;
+
     m_winc_int_semaphore = xSemaphoreCreateBinary();
     ASSERT(NULL != m_winc_int_semaphore);
 
@@ -502,7 +503,10 @@ static void wifi_task_function (void * pvParameter)
             }
     }
 
-    m2m_wifi_enable_firmware_logs(1);
+    ret = m2m_wifi_enable_firmware_logs(1);
+    if (M2M_SUCCESS != ret) {
+         NRF_LOG_ERROR("m2m_wifi_enable_firmware_logs call error!(%d)\r\n", ret);            
+    }
 
     /* Initialize socket interface. */
     socketInit();
