@@ -44,6 +44,7 @@
 //#include "asf.h"
 
 #include "FreeRTOS.h"
+#include "task.h"
 #include "semphr.h"
 
 #include "nrf_gpio.h"
@@ -200,9 +201,11 @@ void nm_bsp_reset(void)
  */
 void nm_bsp_sleep(uint32 u32TimeMsec)
 {
-	while (u32TimeMsec--) {
-		nrf_delay_ms(1);
-	}
+        vTaskDelay(u32TimeMsec);
+
+//	while (u32TimeMsec--) {
+//		nrf_delay_ms(1);
+//	}
 }
 
 extern SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in RTC event */
