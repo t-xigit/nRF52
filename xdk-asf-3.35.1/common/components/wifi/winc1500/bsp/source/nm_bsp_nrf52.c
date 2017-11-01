@@ -43,7 +43,11 @@
 #include "common/include/nm_common.h"
 //#include "asf.h"
 #include "nrf_gpio.h"
+#include "nrf_gpiote.h"
 #include "nrf_delay.h"
+
+#include "nrf_drv_gpiote.h"
+
 #include "gpio_one.h"
 
 static tpfNmBspIsr gpfIsr;
@@ -197,6 +201,33 @@ void nm_bsp_sleep(uint32 u32TimeMsec)
 	}
 }
 
+void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+    chip_isr();
+    NRF_LOG_DEBUG("WINC INT\n\r")
+}
+
+/**
+ * @brief Function for configuring: PIN_IN pin for input, PIN_OUT pin for output,
+ * and configures GPIOTE to give an interrupt on pin change.
+ */
+static void gpio_init(void)
+{
+    ret_code_t err_code;
+
+    err_code = nrf_drv_gpiote_init();
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
+    in_config.pull = NRF_GPIO_PIN_NOPULL;
+
+    err_code = nrf_drv_gpiote_in_init(AT_IQRN_PIN, &in_config, in_pin_handler);
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_event_enable(AT_IQRN_PIN, true);
+}
+
+
 /*
  *	@fn		nm_bsp_register_isr
  *	@brief	Register interrupt service routine
@@ -223,6 +254,10 @@ void nm_bsp_register_isr(tpfNmBspIsr pfIsr)
 	extint_chan_enable_callback(CONF_WINC_SPI_INT_EIC,
 			EXTINT_CALLBACK_TYPE_DETECT);
 #endif
+
+  gpio_init();
+  gpfIsr = pfIsr;
+
 }
 
 /*

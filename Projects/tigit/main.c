@@ -248,6 +248,9 @@ static void rtc_task_function (void * pvParameter)
 #define MAIN_WLAN_AUTH          M2M_WIFI_SEC_WPA_PSK
 #define MAIN_WLAN_PSK          "4YGp7XL8BDEbkUwM"
 
+/** PowerSave mode Settings */
+#define MAIN_PS_SLEEP_MODE          M2M_PS_DEEP_AUTOMATIC /* M2M_NO_PS / M2M_PS_DEEP_AUTOMATIC / M2M_PS_MANUAL */
+
 /** Using NTP server information */
 #define MAIN_WORLDWIDE_NTP_POOL_HOSTNAME        "pool.ntp.org"
 #define MAIN_ASIA_NTP_POOL_HOSTNAME             "asia.pool.ntp.org"
@@ -270,6 +273,9 @@ static SOCKET udp_socket = -1;
 
 /** Receive buffer definition. */
 static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE];
+
+/** Wi-Fi Sleep status. */
+static uint8 gu8SleepStatus;
 
 /**
  * \brief Callback to get the Wi-Fi status update.
@@ -309,6 +315,15 @@ static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
 		break;
 	}
 
+        case M2M_WIFI_RESP_GET_SYS_TIME:
+
+		NRF_LOG_INFO("M2M_WIFI_RESP_GET_SYS_TIME\n\r");
+
+		tstrSystemTime  *time = (tstrSystemTime *)pvMsg;
+		NRF_LOG_INFO("SYS_TIME: %s\r\n", time);
+
+	break;
+
 	default:
 	{
 		break;
@@ -346,6 +361,8 @@ static void resolve_cb(uint8_t *pu8DomainName, uint32_t u32ServerIP)
 			return;
 		}
 	}
+
+        m2m_wifi_get_sytem_time();
 }
 
 /**
@@ -427,6 +444,9 @@ int main(void)
 {
     ret_code_t err_code;
 
+    tstrWifiInitParam param;
+    int8_t ret;
+
     log_init();
 
     /* Initialize clock driver for better time accuracy in FREERTOS */
@@ -435,6 +455,52 @@ int main(void)
 
     /* Configure LED-pins as outputs */
     bsp_board_leds_init();
+
+    /* Initialize the BSP. */
+    nm_bsp_init();
+
+    /* Initialize Wi-Fi parameters structure. */
+    memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));
+
+    /* Initialize Wi-Fi driver with data and status callbacks. */
+    param.pfAppWifiCb = wifi_cb;
+    ret = m2m_wifi_init(&param);
+    if (M2M_SUCCESS != ret) {
+            printf("main: m2m_wifi_init call error!(%d)\r\n", ret);
+            while (1) {
+            }
+    }
+
+    m2m_wifi_enable_firmware_logs(1);
+
+    /* Initialize socket interface. */
+    socketInit();
+    registerSocketCallback(socket_cb, resolve_cb);
+
+    /* Set defined sleep mode */
+    if (MAIN_PS_SLEEP_MODE == M2M_PS_MANUAL) {
+            printf("M2M_PS_MANUAL\r\n");
+            m2m_wifi_set_sleep_mode(MAIN_PS_SLEEP_MODE, 1);
+    } else if (MAIN_PS_SLEEP_MODE == M2M_PS_DEEP_AUTOMATIC) {
+            printf("M2M_PS_DEEP_AUTOMATIC\r\n");
+            tstrM2mLsnInt strM2mLsnInt;
+            m2m_wifi_set_sleep_mode(M2M_PS_DEEP_AUTOMATIC, 1);
+            strM2mLsnInt.u16LsnInt = M2M_LISTEN_INTERVAL;
+            m2m_wifi_set_lsn_int(&strM2mLsnInt);
+    } else {
+            printf("M2M_PS_NO\r\n");
+    }
+
+    /* Connect to defined AP. */
+    m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (void *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+
+    while (1) {          
+
+            while (m2m_wifi_handle_events(NULL) != M2M_SUCCESS) {
+            }
+    }
+
+
 
     /* Create task for LED0 blinking with priority set to 2 */
     UNUSED_VARIABLE(xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle));
