@@ -101,10 +101,12 @@ static uint8 gu8SleepStatus;
 
 
 tstrWifiInitParam param;
-    int8_t ret;
+int8_t ret;
+
+tstrSystemTime  *sys_time;
 // WIFI Stuff
 
-
+time_t unix_time = 0;
 
 /**@brief Function for initializing the nrf log module. */
 static void log_init(void)
@@ -211,7 +213,7 @@ static SemaphoreHandle_t m_led_semaphore;
 /**
  * @brief Function to convert Unix time into string and print it
  */
-void print_time(time_t *unix_time_ms)
+void print_time(time_t *unix_time)
 {
 	#define PRINT_BUFFER_SIZE 80
 	//const time_t timezone_delta = 60 * 60 * 2;
@@ -219,12 +221,12 @@ void print_time(time_t *unix_time_ms)
 	time_t time;
 	char print_buffer[PRINT_BUFFER_SIZE];
 
-	uint64_t temp_time = *unix_time_ms;
+	uint64_t temp_time = *unix_time;
 
 	time = (time_t)(temp_time);
 	//time = time + timezone_delta;
 
-	asctime = *localtime(&time);
+	asctime = *gmtime(&time);
 
 	strftime(print_buffer, sizeof(print_buffer), "%H:%M:%S %Y-%m-%d", &asctime);
         NRF_LOG_INFO("%s\n", print_buffer);
@@ -262,8 +264,7 @@ TaskHandle_t rtc_task_handle; /**< Reference to LED0 toggling FreeRTOS task. */
  */
 static void rtc_task_function (void * pvParameter)
 {
-    ret_code_t err_code;
-    time_t unix_time = 0;
+    ret_code_t err_code;    
     UNUSED_PARAMETER(pvParameter);
 
     err_code = nrf_drv_rtc_init(&m_rtc, &m_rtc_config, rtc_int_handler);
@@ -279,8 +280,11 @@ static void rtc_task_function (void * pvParameter)
     {
         bsp_board_led_invert(BSP_BOARD_LED_0);
         NRF_LOG_INFO("RTC TASK\n\r");
-        print_time(&unix_time);
-        unix_time++;
+        if(unix_time)
+        {
+          print_time(&unix_time);
+          unix_time++;
+        }                
 
         /* Delay a task for a given number of ticks */
         UNUSED_RETURN_VALUE(xSemaphoreTake(m_led_semaphore, portMAX_DELAY));
@@ -327,10 +331,21 @@ static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
 
         case M2M_WIFI_RESP_GET_SYS_TIME:
 
-		NRF_LOG_INFO("M2M_WIFI_RESP_GET_SYS_TIME\n\r");
+		NRF_LOG_INFO("M2M_WIFI_RESP_GET_SYS_TIME: ");
 
-		tstrSystemTime  *time = (tstrSystemTime *)pvMsg;
-		NRF_LOG_INFO("SYS_TIME: %s\r\n", time);
+                struct tm time_struct;                
+		sys_time = (tstrSystemTime *)pvMsg;
+
+                time_struct.tm_sec = (int)sys_time->u8Second;
+                time_struct.tm_min = (int)sys_time->u8Minute;
+                time_struct.tm_hour = (int)sys_time->u8Hour;
+                time_struct.tm_mday = (int)sys_time->u8Day;
+                time_struct.tm_mon = ((int)sys_time->u8Month) -1;              
+                time_struct.tm_year = ((int)sys_time->u16Year)-1900;         
+               
+                unix_time = mktime(&time_struct);
+             
+                NRF_LOG_INFO("%s\n\r",ctime(&unix_time));
 
 	break;
 
