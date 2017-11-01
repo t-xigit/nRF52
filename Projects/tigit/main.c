@@ -284,6 +284,7 @@ static void rtc_task_function (void * pvParameter)
         {
           print_time(&unix_time);
           unix_time++;
+          m2m_wifi_req_curr_rssi();
         }                
 
         /* Delay a task for a given number of ticks */
@@ -347,6 +348,14 @@ static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
              
                 NRF_LOG_INFO("%s\n\r",ctime(&unix_time));
 
+	break;
+
+        case M2M_WIFI_RESP_CURRENT_RSSI:
+
+		NRF_LOG_INFO("M2M_WIFI_RESP_CURRENT_RSSI: ");
+
+                sint8 *rssi = (sint8*)pvMsg;
+                M2M_INFO("ch rssi %d\n",*rssi);                          
 	break;
 
 	default:
