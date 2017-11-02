@@ -535,16 +535,12 @@ static void wifi_task_function (void * pvParameter)
         bsp_board_led_invert(BSP_BOARD_LED_3);
         NRF_LOG_INFO("WIFI TASK\n\r");
 
-         while (1)
-         {           
-            while (m2m_wifi_handle_events(NULL) != M2M_SUCCESS) 
-            {
-            }
-            /* Delay a task for a given number of ticks */
-            UNUSED_RETURN_VALUE(xSemaphoreTake(m_winc_int_semaphore, portMAX_DELAY));
-        }
-
-       
+     
+        while (m2m_wifi_handle_events(NULL) != M2M_SUCCESS) 
+          {
+          }
+          /* Delay a task for a given number of ticks */
+          UNUSED_RETURN_VALUE(xSemaphoreTake(m_winc_int_semaphore, portMAX_DELAY));        
     }
 }
 
