@@ -38,6 +38,8 @@
 #include "m2m_wifi.h"
 #include "socket.h"
 
+#include "app_rtc.h"
+
 #if LEDS_NUMBER <= 2
 #error "Board is not equipped with enough amount of LEDs"
 #endif
@@ -556,6 +558,9 @@ int main(void)
 
     /* Configure LED-pins as outputs */
     bsp_board_leds_init();
+
+    err_code = rtc_init();
+    APP_ERROR_CHECK(err_code);
 
     /* Create task for LED0 blinking with priority set to 2 */
     UNUSED_VARIABLE(xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle));

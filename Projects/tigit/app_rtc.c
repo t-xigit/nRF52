@@ -16,15 +16,11 @@
 #include "bsp.h"
 #include "nordic_common.h"
 
-#if 0
-
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
 #include "timers.h"
 
-
-#include "m_global.h"
 #include "nrf_drv_rtc.h"
 
 #define TASK_DELAY        600           /**< Task delay. Delays a LED0 task for 200 ms */
@@ -61,6 +57,7 @@ static nrf_drv_rtc_t const m_rtc = NRF_DRV_RTC_INSTANCE(BLINK_RTC);
  */
 static SemaphoreHandle_t m_rtc_semaphore;
 
+#if 0
 /**
  * @brief Function to convert Unix time into string and print it
  */
