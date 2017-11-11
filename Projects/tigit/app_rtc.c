@@ -21,6 +21,10 @@
 #include "semphr.h"
 #include "timers.h"
 
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
+
 #include "nrf_drv_rtc.h"
 
 #define TASK_DELAY        600           /**< Task delay. Delays a LED0 task for 200 ms */
@@ -57,7 +61,7 @@ static nrf_drv_rtc_t const m_rtc = NRF_DRV_RTC_INSTANCE(BLINK_RTC);
  */
 static SemaphoreHandle_t m_rtc_semaphore;
 
-#if 0
+
 /**
  * @brief Function to convert Unix time into string and print it
  */
@@ -99,6 +103,7 @@ static void rtc_int_handler(nrf_drv_rtc_int_type_t int_type)
    portYIELD_FROM_ISR(yield_req);
 }
 
+
 TaskHandle_t rtc_task_handle; /**< Reference to LED0 toggling FreeRTOS task. */
 /**@brief LED0 task entry function.
  *
@@ -133,14 +138,12 @@ static void rtc_task_function (void * pvParameter)
     }
 }
 
-#endif
-
 ret_code_t rtc_init(void)
 {
-    ret_code_t err_code;    
+    ret_code_t err_code = NRF_SUCCESS;    
 
     /* Create task for LED0 blinking with priority set to 2 */
-    //UNUSED_VARIABLE(xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle));   
+    UNUSED_VARIABLE(xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle));   
 	
     return err_code;
 }
