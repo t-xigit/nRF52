@@ -1,8 +1,12 @@
-/** @file
+/** @file app_wifi.c
  *
  * @brief WIFI MODULE FILE
  *
- * This file contains the source code for the wifi module
+ * This file source file contains the source code for the wifi module
+ *
+ *  @addtogroup group_wifi
+ *  this will also be in the wifi module documentaion.
+ *  @{
  *
  */
 

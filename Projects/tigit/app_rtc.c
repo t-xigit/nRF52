@@ -1,8 +1,12 @@
-/** @file
+/** @file app_rtc.c
+ *  
  * @brief RTC MODULE FILE
  *
  * This	file contains the source code for the rtc module
  *
+ * @addtogroup group_rtc
+ *  this source will also be in the RTC module documentaion.
+ *  @{
  */
 
 #include <stdbool.h>
