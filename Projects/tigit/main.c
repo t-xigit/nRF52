@@ -3,26 +3,15 @@
  * @brief WINC1500 FreeRTOS Example Application main file.
  *
  * This file contains the source code for a sample application using FreeRTOS to do some wifi stuff.
- *
- */
-
- /**
- *	@mainpage My Personal Index Page
+ *	
+ * @mainpage My Personal Index Page
  *	Porpose is having a start point for Projects using FreeRTOS SES nRF52 WINC1500
  *
- *  @defgroup group_app Application Groupe
- *  This is the App Module Groupe not working yet
+ * @defgroup group_app Application Modules
+ *  Modules used by the Application
  *  
- *  @defgroup group_rtc RTC Module
- *  This is the RTC Module Groupe not working yet
  *
- *  @defgroup group_wifi WIFI Module
- *  This is the second group I wanna use for wifi
- *  
- *  @defgroup group3 The Third Group
- *  This is the third group
  */
-
 
 #include <stdbool.h>
 #include <stdint.h>
