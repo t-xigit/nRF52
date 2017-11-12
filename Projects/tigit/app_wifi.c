@@ -18,10 +18,8 @@
 
 #include "FreeRTOS.h"
 #include "app_error.h"
-#include "boards.h"
 #include "bsp.h"
 #include "nordic_common.h"
-#include "nrf_drv_clock.h"
 #include "sdk_errors.h"
 #include "semphr.h"
 #include "task.h"
@@ -31,19 +29,11 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
-#include "SEGGER_SYSVIEW.h"
-
 #include "m2m_wifi.h"
 #include "socket.h"
 
 #include "app_rtc.h"
 
-#if LEDS_NUMBER <= 2
-#error "Board is not equipped with enough amount of LEDs"
-#endif
-
-#define TASK_DELAY 600   /**< Task delay. Delays a LED0 task for 200 ms */
-#define TIMER_PERIOD 500 /**< Timer period. LED1 timer will expire after 1000 ms */
 
 // WIFI Stuff
 
@@ -118,8 +108,8 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 		}
 
 		case M2M_WIFI_REQ_DHCP_CONF: {
+
 			uint8_t* pu8IPAddress = (uint8_t*)pvMsg;
-			/* Turn LED0 on to declare that IP address received. */
 			printf("wifi_cb: M2M_WIFI_REQ_DHCP_CONF: IP is %u.%u.%u.%u\r\n",
 				pu8IPAddress[0], pu8IPAddress[1], pu8IPAddress[2], pu8IPAddress[3]);
 			gbConnectedWifi = true;
@@ -146,6 +136,8 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			unix_time = mktime(&time_struct);
 
 			NRF_LOG_INFO("%s\n\r", ctime(&unix_time));
+			//m2m_wifi_disconnect();
+			//m2m_wifi_deinit(NULL);
 
 			break;
 
