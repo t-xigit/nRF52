@@ -232,14 +232,14 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 											 packetBuffer[42] << 8 |
 											 packetBuffer[43];
 
-					/* Now convert NTP time into everyday time.
+				/* Now convert NTP time into everyday time.
 				 * Unix time starts on Jan 1 1970. In seconds, that's 2208988800.
 				 * Subtract seventy years.
 				 */
 					const uint32_t seventyYears = 2208988800UL;
 					uint32_t epoch = secsSince1900 - seventyYears;
 
-					/* Print the hour, minute and second.
+				/* Print the hour, minute and second.
 				 * GMT is the time at Greenwich Meridian.
 				 */
 					printf("socket_cb: The GMT time is %lu:%02lu:%02lu\r\n",
@@ -260,9 +260,10 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 	}
 }
 
-TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
+TaskHandle_t wifi_task_handle;		/**< Reference to LED0 toggling FreeRTOS task. */
 SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in RTC event */
-/**@brief LED0 task entry function.
+
+/**@brief WIFI TASK HANDLE
  *
  * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
  */
