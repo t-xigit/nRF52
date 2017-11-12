@@ -1,11 +1,7 @@
 /** @file
- * @defgroup blinky_example_main main.c
- * @{
- * @ingroup blinky_example_freertos
+ * @brief RTC MODULE FILE
  *
- * @brief Blinky FreeRTOS Example Application main file.
- *
- * This	file contains the source code for a sample application using FreeRTOS to blink LEDs.
+ * This	file contains the source code for the rtc module
  *
  */
 
@@ -102,7 +98,8 @@ static void rtc_int_handler(nrf_drv_rtc_int_type_t int_type) {
 }
 
 TaskHandle_t rtc_task_handle; /**< Reference to	LED0 toggling FreeRTOS task. */
-/**@brief LED0 task entry function.
+
+/**@brief RTC task handle function.
  *
  * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
  */
@@ -133,6 +130,8 @@ static void rtc_task_function(void* pvParameter) {
 	}
 }
 
+/** @brief RTC task init and start function
+ */
 ret_code_t rtc_init_task(void) {
 	ret_code_t err_code	= NRF_SUCCESS;
 

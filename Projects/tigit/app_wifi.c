@@ -1,11 +1,8 @@
 /** @file
- * @defgroup blinky_example_main main.c
- * @{
- * @ingroup blinky_example_freertos
  *
- * @brief Blinky FreeRTOS Example Application main file.
+ * @brief WIFI MODULE FILE
  *
- * This file contains the source code for a sample application using FreeRTOS to blink LEDs.
+ * This file contains the source code for the wifi module
  *
  */
 
@@ -76,12 +73,15 @@ static SOCKET udp_socket = -1;
 /** Receive buffer definition. */
 static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE];
 
-/** Wi-Fi Sleep status. */
-static uint8 gu8SleepStatus;
+static uint8 gu8SleepStatus;		  /**< Wi-Fi Sleep status. */
 
 tstrWifiInitParam param;
 
 tstrSystemTime* sys_time;
+
+TaskHandle_t wifi_task_handle;		/**< Reference to LED0 toggling FreeRTOS task. */
+SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in RTC event */
+
 // WIFI Stuff
 
 /**
@@ -259,9 +259,6 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			break;
 	}
 }
-
-TaskHandle_t wifi_task_handle;		/**< Reference to LED0 toggling FreeRTOS task. */
-SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in RTC event */
 
 /**@brief WIFI TASK HANDLE
  *

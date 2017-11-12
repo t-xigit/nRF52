@@ -1,16 +1,13 @@
 /** @file
- * @defgroup blinky_example_main main.c
+ * @defgroup winc1500 lib main.c
  * @{
- * @ingroup blinky_example_freertos
+ * @ingroup shmart_shmart
  *
- * @brief Blinky FreeRTOS Example Application main file.
+ * @brief WINC1500 FreeRTOS Example Application main file.
  *
- * This file contains the source code for a sample application using FreeRTOS to blink LEDs.
+ * This file contains the source code for a sample application using FreeRTOS to do some wifi stuff.
  *
  */
-
-//http://www.atmel.com/Images/Atmel-42388-ATWINC1500-Xplained-Pro_UserGuide.pdf
-// page 7
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -55,6 +52,7 @@ static void log_init(void) {
 }
 
 TaskHandle_t timer_task_handle; /**< Reference to LED0 toggling FreeRTOS task. */
+
 /**@brief TimerTask task entry function.
  *
  * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
@@ -71,6 +69,7 @@ static void timer_task_function(void* pvParameter) {
 }
 
 TaskHandle_t button_task_handle; /**< Reference to button task. */
+
 /**@brief Button task entry function.
  *
  * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
