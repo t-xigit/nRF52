@@ -54,7 +54,7 @@
 #include "sdk_errors.h"
 
 extern time_t unix_time;
-ret_code_t rtc_init(void);
+ret_code_t rtc_init_task(void);
 
 #ifdef __cplusplus
 extern "C" {

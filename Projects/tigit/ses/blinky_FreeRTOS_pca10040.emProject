@@ -148,12 +148,14 @@
       <file file_name="../main.c" />
       <file file_name="../app_rtc.c" />
       <file file_name="../app_rtc.h" />
+      <file file_name="../app_wifi.c" />
     </folder>
     <folder Name="Device">
       <file file_name="../../../nRF5_SDK_14.1.0_1dda907/components/toolchain/ses/ses_nRF_Startup.s" />
       <file file_name="../../../nRF5_SDK_14.1.0_1dda907/components/toolchain/ses/ses_nrf52_Vectors.s" />
       <file file_name="../../../nRF5_SDK_14.1.0_1dda907/components/toolchain/system_nrf52.c" />
     </folder>
+    <file file_name="../app_wifi.h" />
   </project>
   <configuration
     Name="Release"
