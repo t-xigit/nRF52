@@ -138,12 +138,19 @@ static void rtc_task_function (void * pvParameter)
     }
 }
 
-ret_code_t rtc_init(void)
+ret_code_t rtc_init_task(void)
 {
     ret_code_t err_code = NRF_SUCCESS;    
 
     /* Create task for LED0 blinking with priority set to 2 */
-    UNUSED_VARIABLE(xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle));   
+    err_code = (ret_code_t) xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle);
+    if(err_code == pdPASS){
+      NRF_LOG_INFO("RTC TASK CREATED");
+      err_code = NRF_SUCCESS;
+    }else{
+      NRF_LOG_ERROR("RTC TASK CREATE ERROR");
+      err_code = NRF_ERROR_NO_MEM;     
+    }
 	
     return err_code;
 }

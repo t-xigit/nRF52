@@ -461,11 +461,8 @@ int main(void)
     /* Configure LED-pins as outputs */
     bsp_board_leds_init();
 
-    err_code = rtc_init();
+    err_code = rtc_init_task();
     APP_ERROR_CHECK(err_code);
-
-    /* Create task for LED0 blinking with priority set to 2 */
-    //UNUSED_VARIABLE(xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle));
 
     /* Create task for timer with priority set to 2 */
     UNUSED_VARIABLE(xTaskCreate(timer_task_function, "TIM", configMINIMAL_STACK_SIZE + 200, NULL, 2, &timer_task_handle));
