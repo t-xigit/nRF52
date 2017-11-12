@@ -48,7 +48,7 @@
  */
 #define BLINK_RTC_TICKS   (RTC_US_TO_TICKS(RTC_PERIOD, RTC_DEFAULT_CONFIG_FREQUENCY))
 
-static time_t unix_time = 0;
+time_t unix_time = 0;
 
 /**
  * @brief RTC configuration & instance

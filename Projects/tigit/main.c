@@ -47,10 +47,18 @@
 
 // WIFI Stuff
 
+#if 0
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID         "Schluesseldienst"
 #define MAIN_WLAN_AUTH          M2M_WIFI_SEC_WPA_PSK
 #define MAIN_WLAN_PSK          "4YGp7XL8BDEbkUwM"
+#endif
+#if 1
+/** Wi-Fi Settings */
+#define MAIN_WLAN_SSID         "Tech_D0042715"
+#define MAIN_WLAN_AUTH          M2M_WIFI_SEC_WPA_PSK
+#define MAIN_WLAN_PSK          "GMZPVGYY"
+#endif
 
 /** PowerSave mode Settings */
 #define MAIN_PS_SLEEP_MODE          M2M_PS_DEEP_AUTOMATIC /* M2M_NO_PS / M2M_PS_DEEP_AUTOMATIC / M2M_PS_MANUAL */
@@ -240,9 +248,9 @@ static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
                 time_struct.tm_mon = ((int)sys_time->u8Month) -1;              
                 time_struct.tm_year = ((int)sys_time->u16Year)-1900;         
                
-                //TODO provide set time function unix_time = mktime(&time_struct);
+                unix_time = mktime(&time_struct);
              
-                //NRF_LOG_INFO("%s\n\r",ctime(&unix_time));
+                NRF_LOG_INFO("%s\n\r",ctime(&unix_time));
 
 	break;
 
