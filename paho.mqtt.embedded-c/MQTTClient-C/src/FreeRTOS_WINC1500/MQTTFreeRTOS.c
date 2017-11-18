@@ -16,6 +16,7 @@
  *******************************************************************************/
 
 #include "MQTTFreeRTOS.h"
+#include "socket/include/socket.h"
 
 
 int ThreadStart(Thread* thread, void (*fn)(void*), void* arg)
@@ -24,12 +25,12 @@ int ThreadStart(Thread* thread, void (*fn)(void*), void* arg)
 	uint16_t usTaskStackSize = (configMINIMAL_STACK_SIZE * 5);
 	UBaseType_t uxTaskPriority = uxTaskPriorityGet(NULL); /* set the priority as the same as the calling task*/
 
-	rc = xTaskCreate(fn,	/* The function that implements the task. */
-		"MQTTTask",			/* Just a text name for the task to aid debugging. */
-		usTaskStackSize,	/* The stack size is defined in FreeRTOSIPConfig.h. */
-		arg,				/* The task parameter, not used in this case. */
-		uxTaskPriority,		/* The priority assigned to the task is defined in FreeRTOSConfig.h. */
-		&thread->task);		/* The task handle is not used. */
+	rc = xTaskCreate(fn,	    /* The function that implements the task. */
+		"MQTTTask",	    /* Just a text name for the task to aid debugging. */
+		usTaskStackSize,    /* The stack size is defined in FreeRTOSIPConfig.h. */
+		arg,		    /* The task parameter, not used in this case. */
+		uxTaskPriority,	    /* The priority assigned to the task is defined in FreeRTOSConfig.h. */
+		&thread->task);	    /* The task handle is not used. */
 
 	return rc;
 }
@@ -138,7 +139,13 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
 
 void FreeRTOS_disconnect(Network* n)
 {
-	//TODO FreeRTOS_closesocket(n->my_socket);
+  int16_t ret;
+//TODO FreeRTOS_closesocket(n->my_socket);
+	
+    ret = close(n -> my_socket);
+    if (ret == SOCK_ERR_NO_ERROR) {
+      NRF_LOG_DEBUG("SOCKET CLOSED");
+    }else NRF_LOG_ERROR("SOCKET CLOSE ERROR");
 }
 
 
