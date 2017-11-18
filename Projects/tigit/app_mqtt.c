@@ -23,7 +23,7 @@
 #include "app_config.h"
 #include "app_mqtt.h"
 
-#define MQTT_TASK 1
+#include "MQTTFreeRTOS.h"
 #include "MQTTClient.h"
 
 #define NRF_LOG_MODULE_NAME app_mqtt

@@ -37,6 +37,7 @@
 #include "MQTTPacket.h"
 #include "stdio.h"
 
+#define MQTT_TASK 1
 #include "MQTTFreeRTOS.h"
 
 #if defined(MQTTCLIENT_PLATFORM_HEADER)
@@ -219,10 +220,8 @@ DLLExport int MQTTYield(MQTTClient* client, int time);
  *  @param client - the client object to use
  *  @return truth value indicating whether the client is connected to the server
  */
-DLLExport int MQTTIsConnected(MQTTClient* client)
-{
-  return client->isconnected;
-}
+DLLExport int MQTTIsConnected(MQTTClient* client);
+
 
 #if defined(MQTT_TASK)
 /** MQTT start background thread for a client.  After this, MQTTYield should not be called.

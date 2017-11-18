@@ -690,3 +690,9 @@ int MQTTDisconnect(MQTTClient* c)
 #endif
     return rc;
 }
+
+
+DLLExport int MQTTIsConnected(MQTTClient* client)
+{
+  return client->isconnected;
+}
