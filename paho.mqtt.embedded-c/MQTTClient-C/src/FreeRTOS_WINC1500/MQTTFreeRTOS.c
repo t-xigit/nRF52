@@ -157,8 +157,9 @@ int NetworkConnect(Network* n, char* addr, int port)
 	int retVal = -1;
 	uint32_t ipAddress;
 
-	if ((ipAddress = FreeRTOS_gethostbyname(addr)) == 0)
-		goto exit;
+	//TODO 
+//	if ((ipAddress = FreeRTOS_gethostbyname(addr)) == 0)
+//		goto exit;
 
 	//TODO sAddr.sin_port = FreeRTOS_htons(port);
 	//TODO sAddr.sin_addr = ipAddress;

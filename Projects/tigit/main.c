@@ -39,6 +39,7 @@
 
 #include "app_rtc.h"
 #include "app_wifi.h"
+#include "app_mqtt.h"
 
 #if LEDS_NUMBER <= 2
 #error "Board is not equipped with enough amount of LEDs"
@@ -154,6 +155,9 @@ int main(void) {
 
         err_code = wifi_start_task();
 	APP_ERROR_CHECK(err_code);
+	
+	err_code = mqtt_start_task();
+	APP_ERROR_CHECK(err_code);	
 
 	/* Create task for timer with priority set to 2 */
 	UNUSED_VARIABLE(xTaskCreate(timer_task_function, "TIM", configMINIMAL_STACK_SIZE + 200, NULL, 2, &timer_task_handle));
