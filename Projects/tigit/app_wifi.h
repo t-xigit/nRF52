@@ -27,6 +27,7 @@ extern "C" {
 #define wifi_req_curr_rssi()   m2m_wifi_req_curr_rssi()
 
 ret_code_t wifi_start_task(void);
+void wifi_turn_off(void);
 
 
 /** @} */

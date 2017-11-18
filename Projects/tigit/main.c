@@ -96,14 +96,15 @@ static void button_task_function(void* pvParameter) {
 
 		if (bsp_board_button_state_get(button_1_idx)) {
 			NRF_LOG_INFO("BUTTON 1\n\r");
-			NRF_LOG_INFO("m2m_wifi_req_curr_rssi\n\r");
+			NRF_LOG_INFO("wifi_req_curr_rssi\n\r");
 			wifi_req_curr_rssi();
 			/* Block to debounce*/
 			vTaskDelay(BUTTON_TASK_DELAY * 2);
 		}
 
 		if (bsp_board_button_state_get(button_2_idx)) {
-			NRF_LOG_INFO("BUTTON 2\n\r");
+			NRF_LOG_INFO("BUTTON 2\n\r");			
+			wifi_turn_off();
 			/* Block to debounce*/
 			vTaskDelay(BUTTON_TASK_DELAY * 2);
 		}

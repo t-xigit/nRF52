@@ -17,34 +17,44 @@
 #include <stdint.h>
 #include <time.h>
 
-#include "FreeRTOS.h"
+
 #include "app_error.h"
 #include "bsp.h"
 #include "nordic_common.h"
 #include "sdk_errors.h"
+
+#include "FreeRTOS.h"
 #include "semphr.h"
 #include "task.h"
 #include "timers.h"
-
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
-#include "nrf_log_default_backends.h"
 
 #include "m2m_wifi.h"
 #include "socket.h"
 
 #include "app_rtc.h"
 
+#include "app_config.h"
+
 #define NRF_LOG_MODULE_NAME app_wifi
+
+#if APP_WIFI_CONFIG_LOG_ENABLED
+#define NRF_LOG_LEVEL       APP_WIFI_CONFIG_LOG_LEVEL
+#define NRF_LOG_INFO_COLOR  APP_WIFI_CONFIG_INFO_COLOR
+#define NRF_LOG_DEBUG_COLOR APP_WIFI_CONFIG_DEBUG_COLOR
+
+#else //APP_WIFI_CONFIG_LOG_ENABLED
+#define NRF_LOG_LEVEL       0
+#endif //APP_WIFI_CONFIG_LOG_ENABLED
+#include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
-#if 0
+#if 1
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Schluesseldienst"
 #define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
 #define MAIN_WLAN_PSK "4YGp7XL8BDEbkUwM"
 #endif
-#if 1
+#if 0
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Tech_D0042715"
 #define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
@@ -259,6 +269,15 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 		default:
 			break;
 	}
+}
+
+/**@brief 
+ *
+ * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
+ */
+void wifi_turn_off(void) {
+   NRF_LOG_INFO("wifi_turn_off()");
+	
 }
 
 /**@brief WIFI TASK HANDLE
