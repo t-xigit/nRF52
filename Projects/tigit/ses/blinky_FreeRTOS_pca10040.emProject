@@ -123,11 +123,11 @@
           <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/MQTTClient.c" />
           <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/MQTTClient.h" />
           <folder Name="FreeRTOS">
-            <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/FreeRTOS/MQTTFreeRTOS.c" />
-            <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/FreeRTOS/MQTTFreeRTOS.h" />
-            <configuration Name="Debug" build_exclude_from_build="Yes" />
+            <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/FreeRTOS_WINC1500/MQTTFreeRTOS.c" />
+            <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/FreeRTOS_WINC1500/MQTTFreeRTOS.h" />
+            <configuration Name="Debug" build_exclude_from_build="No" />
           </folder>
-          <configuration Name="Debug" build_exclude_from_build="Yes" />
+          <configuration Name="Debug" build_exclude_from_build="No" />
         </folder>
       </folder>
     </folder>
