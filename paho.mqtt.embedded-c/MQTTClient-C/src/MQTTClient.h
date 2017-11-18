@@ -37,6 +37,8 @@
 #include "MQTTPacket.h"
 #include "stdio.h"
 
+#include "MQTTFreeRTOS.h"
+
 #if defined(MQTTCLIENT_PLATFORM_HEADER)
 /* The following sequence of macros converts the MQTTCLIENT_PLATFORM_HEADER value
  * into a string constant suitable for use with include.

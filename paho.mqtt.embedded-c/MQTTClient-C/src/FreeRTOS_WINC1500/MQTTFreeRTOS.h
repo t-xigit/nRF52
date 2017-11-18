@@ -17,11 +17,15 @@
 #if !defined(MQTTFreeRTOS_H)
 #define MQTTFreeRTOS_H
 
+//FreeRTOS includes
 #include "FreeRTOS.h"
 //#include "FreeRTOS_Sockets.h"
 //#include "FreeRTOS_IP.h"
 #include "semphr.h"
 #include "task.h"
+
+// WINC1500 includes
+#include "socket.h"
 
 typedef struct Timer 
 {
@@ -33,7 +37,7 @@ typedef struct Network Network;
 
 struct Network
 {
-	xSocket_t my_socket;
+	SOCKET my_socket;
 	int (*mqttread) (Network*, unsigned char*, int, int);
 	int (*mqttwrite) (Network*, unsigned char*, int, int);
 	void (*disconnect) (Network*);
