@@ -32,7 +32,6 @@
 #include "socket.h"
 
 #include "app_rtc.h"
-
 #include "app_config.h"
 
 #define NRF_LOG_MODULE_NAME app_wifi
@@ -147,8 +146,6 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			unix_time = mktime(&time_struct);
 
 			NRF_LOG_INFO("%s\n\r", ctime(&unix_time));
-			//m2m_wifi_disconnect();
-			//m2m_wifi_deinit(NULL);
 
 			break;
 
@@ -276,8 +273,12 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
  * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
  */
 void wifi_turn_off(void) {
-   NRF_LOG_INFO("wifi_turn_off()");
-	
+  NRF_LOG_INFO("wifi_turn_off()");
+
+  NRF_LOG_INFO("m2m_wifi_disconnect()");
+  m2m_wifi_disconnect();
+  NRF_LOG_INFO("m2m_wifi_deinit()");
+  m2m_wifi_deinit(NULL);
 }
 
 /**@brief WIFI TASK HANDLE
