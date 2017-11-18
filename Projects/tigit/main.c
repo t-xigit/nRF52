@@ -68,7 +68,7 @@ static void timer_task_function(void* pvParameter) {
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 		bsp_board_led_invert(BSP_BOARD_LED_1);
-		NRF_LOG_INFO("TIMER TASK\n\r");
+		NRF_LOG_DEBUG("TIMER TASK\n\r");
 	}
 }
 

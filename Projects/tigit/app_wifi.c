@@ -74,19 +74,16 @@ static char dns_server_address[HOSTNAME_MAX_SIZE];
 /** UDP socket handlers. */
 static SOCKET udp_socket = -1;
 
-/** Receive buffer definition. */
-static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE];
+static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE];	/** Receive buffer definition. */
 
-static uint8 gu8SleepStatus;		  /**< Wi-Fi Sleep status. */
+static uint8 gu8SleepStatus;				/**< Wi-Fi Sleep status. */
 
 tstrWifiInitParam param;
 
 tstrSystemTime* sys_time;
 
-TaskHandle_t wifi_task_handle;		/**< Reference to LED0 toggling FreeRTOS task. */
-SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in RTC event */
-
-// WIFI Stuff
+TaskHandle_t wifi_task_handle;				/**< Reference to LED0 toggling FreeRTOS task. */
+SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in RTC event */
 
 /**
  * \brief Callback to get the Wi-Fi status update.

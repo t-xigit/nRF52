@@ -27,6 +27,9 @@
 
 #include "nrf_drv_rtc.h"
 
+#define NRF_LOG_MODULE_NAME app_rtc
+NRF_LOG_MODULE_REGISTER();
+
 #define	TASK_DELAY 600	      /**< Task	delay. Delays a	LED0 task for 200 ms */
 #define	TIMER_PERIOD 500      /**< Timer period. LED1 timer will expire	after 1000 ms */
 #define	RTC_PERIOD 1000000ULL /**< Timer period. LED1 timer will expire	after 1000 ms */
@@ -122,7 +125,7 @@ static void rtc_task_function(void* pvParameter) {
 
 	while (true) {
 		bsp_board_led_invert(BSP_BOARD_LED_0);
-		NRF_LOG_INFO("RTC TASK\n\r");
+		NRF_LOG_DEBUG("RTC TASK\n\r");
 		
 		if (unix_time) {
 			print_time(&unix_time);
