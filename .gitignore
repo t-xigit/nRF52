@@ -1,11 +1,2 @@
-*.o
-*.d
-*.map
-*.hex
-*.elf
-*.asm
-*.emSession
-*.ind
-*.ld
-*.s
 Projects/tigit/doxygen/output/
+Projects/tigit/ses/Output/
