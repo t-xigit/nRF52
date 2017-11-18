@@ -17,16 +17,19 @@
 #include <stdint.h>
 #include <time.h>
 
-#include "FreeRTOS.h"
+
 #include "app_error.h"
 #include "boards.h"
 #include "bsp.h"
 #include "nordic_common.h"
 #include "nrf_drv_clock.h"
 #include "sdk_errors.h"
+
+#include "FreeRTOS.h"
 #include "semphr.h"
 #include "task.h"
 #include "timers.h"
+#include "FreeRTOSConfig.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"

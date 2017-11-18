@@ -27,6 +27,8 @@
 #include "semphr.h"
 #include "task.h"
 #include "timers.h"
+#include "FreeRTOSConfig.h"
+
 
 #include "m2m_wifi.h"
 #include "socket.h"
@@ -105,10 +107,10 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 		case M2M_WIFI_RESP_CON_STATE_CHANGED: {
 			tstrM2mWifiStateChanged* pstrWifiState = (tstrM2mWifiStateChanged*)pvMsg;
 			if (pstrWifiState->u8CurrState == M2M_WIFI_CONNECTED) {
-				printf("wifi_cb: M2M_WIFI_RESP_CON_STATE_CHANGED: CONNECTED\r\n");
+				NRF_LOG_INFO("wifi_cb: M2M_WIFI_RESP_CON_STATE_CHANGED: CONNECTED");
 				m2m_wifi_request_dhcp_client();
 			} else if (pstrWifiState->u8CurrState == M2M_WIFI_DISCONNECTED) {
-				printf("wifi_cb: M2M_WIFI_RESP_CON_STATE_CHANGED: DISCONNECTED\r\n");
+				NRF_LOG_INFO("wifi_cb: M2M_WIFI_RESP_CON_STATE_CHANGED: DISCONNECTED");
 				gbConnectedWifi = false;
 				m2m_wifi_connect((char*)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID),
 					MAIN_WLAN_AUTH, (char*)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
@@ -120,7 +122,7 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 		case M2M_WIFI_REQ_DHCP_CONF: {
 
 			uint8_t* pu8IPAddress = (uint8_t*)pvMsg;
-			printf("wifi_cb: M2M_WIFI_REQ_DHCP_CONF: IP is %u.%u.%u.%u\r\n",
+			NRF_LOG_INFO("wifi_cb: M2M_WIFI_REQ_DHCP_CONF: IP is %u.%u.%u.%u",
 				pu8IPAddress[0], pu8IPAddress[1], pu8IPAddress[2], pu8IPAddress[3]);
 			gbConnectedWifi = true;
 			memcpy(dns_server_address, (uint8_t*)MAIN_WORLDWIDE_NTP_POOL_HOSTNAME, strlen(MAIN_WORLDWIDE_NTP_POOL_HOSTNAME));
@@ -178,7 +180,7 @@ static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
 	memset(cDataBuf, 0, sizeof(cDataBuf));
 	cDataBuf[0] = '\x1b'; /* time query */
 
-	printf("resolve_cb: DomainName %s\r\n", pu8DomainName);
+	NRF_LOG_INFO("resolve_cb: DomainName %s", pu8DomainName);
 
 	if (udp_socket >= 0) {
 		/* Set NTP server socket address structure. */
@@ -189,7 +191,7 @@ static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
 		/*Send an NTP time query to the NTP server*/
 		ret = sendto(udp_socket, (int8_t*)&cDataBuf, sizeof(cDataBuf), 0, (struct sockaddr*)&addr, sizeof(addr));
 		if (ret != M2M_SUCCESS) {
-			printf("resolve_cb: failed to send  error!\r\n");
+			NRF_LOG_INFO("resolve_cb: failed to send  error!");
 			return;
 		}
 	}
@@ -215,10 +217,10 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			if (pstrBind && pstrBind->status == 0) {
 				ret = recvfrom(sock, gau8SocketBuffer, MAIN_WIFI_M2M_BUFFER_SIZE, 0);
 				if (ret != SOCK_ERR_NO_ERROR) {
-					printf("socket_cb: recv error!\r\n");
+					NRF_LOG_INFO("socket_cb: recv error!");
 				}
 			} else {
-				printf("socket_cb: bind error!\r\n");
+				NRF_LOG_INFO("socket_cb: bind error!");
 			}
 
 			break;
@@ -232,7 +234,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				memcpy(&packetBuffer, pstrRx->pu8Buffer, sizeof(packetBuffer));
 
 				if ((packetBuffer[0] & 0x7) != 4) { /* expect only server response */
-					printf("socket_cb: Expecting response from Server Only!\r\n");
+					NRF_LOG_INFO("socket_cb: Expecting response from Server Only!");
 					return; /* MODE is not server, abort */
 				} else {
 					uint32_t secsSince1900 = packetBuffer[40] << 24 |
@@ -250,7 +252,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				/* Print the hour, minute and second.
 				 * GMT is the time at Greenwich Meridian.
 				 */
-					printf("socket_cb: The GMT time is %lu:%02lu:%02lu\r\n",
+					NRF_LOG_INFO("socket_cb: The GMT time is %lu:%02lu:%02lu",
 						(epoch % 86400L) / 3600, /* hour (86400 equals secs per day) */
 						(epoch % 3600) / 60,	 /* minute (3600 equals secs per minute) */
 						epoch % 60);			 /* second */
@@ -268,17 +270,37 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 	}
 }
 
-/**@brief 
+/**@brief turns off deinitalises all resources
  *
- * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
  */
 void wifi_turn_off(void) {
+   
+  sint8 ret = M2M_SUCCESS;
   NRF_LOG_INFO("wifi_turn_off()");
 
-  NRF_LOG_INFO("m2m_wifi_disconnect()");
-  m2m_wifi_disconnect();
-  NRF_LOG_INFO("m2m_wifi_deinit()");
-  m2m_wifi_deinit(NULL);
+  ret = m2m_wifi_disconnect();
+  if(ret == M2M_SUCCESS){
+    NRF_LOG_INFO("m2m_wifi_disconnect >>> OK");
+  }else NRF_LOG_ERROR("m2m_wifi_disconnect >>> ERROR");
+  
+  ret = m2m_wifi_deinit(NULL);
+  if(ret == M2M_SUCCESS){
+    NRF_LOG_INFO("m2m_wifi_deinit >>> OK");
+  }else NRF_LOG_ERROR("m2m_wifi_deinit >>> ERROR");
+  
+  ret = nm_bsp_deinit();
+  if(ret == M2M_SUCCESS){
+    NRF_LOG_INFO("nm_bsp_deinit >>> OK");
+  }else NRF_LOG_ERROR("nm_bsp_deinit >>> ERROR");
+  
+  nm_bsp_interrupt_ctrl(false);
+
+#if 0
+  //@BUG doesn't work, both calls cause crashes
+  NRF_LOG_INFO("vTaskDelete(wifi_task_handle)");
+  vSemaphoreDelete(m_winc_int_semaphore);
+  vTaskDelete(wifi_task_handle);
+#endif
 }
 
 /**@brief WIFI TASK HANDLE
@@ -303,14 +325,14 @@ static void wifi_task_function(void* pvParameter) {
 	param.pfAppWifiCb = wifi_cb;
 	ret = m2m_wifi_init(&param);
 	if (M2M_SUCCESS != ret) {
-		printf("main: m2m_wifi_init call error!(%d)\r\n", ret);
+		NRF_LOG_INFO("main: m2m_wifi_init call error!(%d)", ret);
 		while (1) {
 		}
 	}
 
 	ret = m2m_wifi_enable_firmware_logs(1);
 	if (M2M_SUCCESS != ret) {
-		NRF_LOG_ERROR("m2m_wifi_enable_firmware_logs call error!(%d)\r\n", ret);
+		NRF_LOG_ERROR("m2m_wifi_enable_firmware_logs call error!(%d)", ret);
 	}
 
 	/* Initialize socket interface. */
@@ -319,16 +341,16 @@ static void wifi_task_function(void* pvParameter) {
 
 	/* Set defined sleep mode */
 	if (MAIN_PS_SLEEP_MODE == M2M_PS_MANUAL) {
-		printf("M2M_PS_MANUAL\r\n");
+		NRF_LOG_INFO("M2M_PS_MANUAL");
 		m2m_wifi_set_sleep_mode(MAIN_PS_SLEEP_MODE, 1);
 	} else if (MAIN_PS_SLEEP_MODE == M2M_PS_DEEP_AUTOMATIC) {
-		printf("M2M_PS_DEEP_AUTOMATIC\r\n");
+		NRF_LOG_INFO("M2M_PS_DEEP_AUTOMATIC");
 		tstrM2mLsnInt strM2mLsnInt;
 		m2m_wifi_set_sleep_mode(M2M_PS_DEEP_AUTOMATIC, 1);
 		strM2mLsnInt.u16LsnInt = M2M_LISTEN_INTERVAL;
 		m2m_wifi_set_lsn_int(&strM2mLsnInt);
 	} else {
-		printf("M2M_PS_NO\r\n");
+		NRF_LOG_INFO("M2M_PS_NO");
 	}
 
 	/* Connect to defined AP. */

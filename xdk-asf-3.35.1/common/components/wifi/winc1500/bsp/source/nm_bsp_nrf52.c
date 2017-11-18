@@ -56,6 +56,7 @@
 #include "gpio_one.h"
 
 static tpfNmBspIsr gpfIsr;
+static nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
 
 static void chip_isr(void)
 {
@@ -118,11 +119,6 @@ sint8 nm_bsp_init(void)
 
 	/* Initialize chip IOs. */
 	init_chip_pins();
-
-	/* Make sure a 1ms Systick is configured. */
-//	if (!(SysTick->CTRL & SysTick_CTRL_ENABLE_Msk && SysTick->CTRL & SysTick_CTRL_TICKINT_Msk)) {
-//		delay_init();
-//	}
 
 	/* Perform chip reset. */
 	nm_bsp_reset();
@@ -231,8 +227,7 @@ static void gpio_init(void)
 
     err_code = nrf_drv_gpiote_init();
     APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
+    
     in_config.pull = NRF_GPIO_PIN_NOPULL;
 
     err_code = nrf_drv_gpiote_in_init(AT_IQRN_PIN, &in_config, in_pin_handler);
@@ -290,6 +285,13 @@ void nm_bsp_interrupt_ctrl(uint8 u8Enable)
 	} else {
 		extint_chan_disable_callback(CONF_WINC_SPI_INT_EIC,
 				EXTINT_CALLBACK_TYPE_DETECT);
+	}
+#endif
+#if 1
+	if (u8Enable) {
+		 nrf_drv_gpiote_in_event_enable(AT_IQRN_PIN, true);
+	} else {
+		nrf_drv_gpiote_in_event_disable(AT_IQRN_PIN);
 	}
 #endif
 }
