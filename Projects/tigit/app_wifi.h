@@ -22,8 +22,11 @@ extern "C" {
 #endif
 
 #include "sdk_errors.h"
+#include "m2m_wifi.h"
 
-ret_code_t start_wifi_task(void);
+#define wifi_req_curr_rssi()   m2m_wifi_req_curr_rssi()
+
+ret_code_t wifi_start_task(void);
 
 
 /** @} */

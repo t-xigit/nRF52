@@ -97,7 +97,7 @@ static void button_task_function(void* pvParameter) {
 		if (bsp_board_button_state_get(button_1_idx)) {
 			NRF_LOG_INFO("BUTTON 1\n\r");
 			NRF_LOG_INFO("m2m_wifi_req_curr_rssi\n\r");
-			//m2m_wifi_req_curr_rssi();
+			wifi_req_curr_rssi();
 			/* Block to debounce*/
 			vTaskDelay(BUTTON_TASK_DELAY * 2);
 		}
@@ -148,7 +148,7 @@ int main(void) {
 	err_code = rtc_init_task();
 	APP_ERROR_CHECK(err_code);
 
-        err_code = start_wifi_task();
+        err_code = wifi_start_task();
 	APP_ERROR_CHECK(err_code);
 
 	/* Create task for timer with priority set to 2 */

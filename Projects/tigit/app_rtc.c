@@ -15,19 +15,26 @@
 
 #include "bsp.h"
 #include "nordic_common.h"
+#include "nrf_drv_rtc.h"
 
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "task.h"
 #include "timers.h"
 
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
-#include "nrf_log_default_backends.h"
-
-#include "nrf_drv_rtc.h"
+#include "app_config.h"
 
 #define NRF_LOG_MODULE_NAME app_rtc
+
+#if APP_RTC_CONFIG_LOG_ENABLED
+#define NRF_LOG_LEVEL       APP_RTC_CONFIG_LOG_LEVEL
+#define NRF_LOG_INFO_COLOR  APP_RTC_CONFIG_INFO_COLOR
+#define NRF_LOG_DEBUG_COLOR APP_RTC_CONFIG_DEBUG_COLOR
+
+#else //APP_RTC_CONFIG_LOG_ENABLED
+#define NRF_LOG_LEVEL       0
+#endif //APP_RTC_CONFIG_LOG_ENABLED
+#include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
 #define	TASK_DELAY 600	      /**< Task	delay. Delays a	LED0 task for 200 ms */
@@ -97,7 +104,7 @@ static void rtc_int_handler(nrf_drv_rtc_int_type_t int_type) {
 	true);
 	APP_ERROR_CHECK(err_code);
 
-	NRF_LOG_INFO("RTC INTERUPT\n\r");
+	NRF_LOG_DEBUG("RTC INTERUPT");
 	/* The returned value may be safely	ignored, if error is returned it only means that
 	* the semaphore is already given (raised). */
 	UNUSED_VARIABLE(xSemaphoreGiveFromISR(m_rtc_semaphore, &yield_req));
@@ -125,7 +132,7 @@ static void rtc_task_function(void* pvParameter) {
 
 	while (true) {
 		bsp_board_led_invert(BSP_BOARD_LED_0);
-		NRF_LOG_DEBUG("RTC TASK\n\r");
+		NRF_LOG_DEBUG("RTC TASK");
 		
 		if (unix_time) {
 			print_time(&unix_time);

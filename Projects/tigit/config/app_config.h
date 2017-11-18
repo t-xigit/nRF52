@@ -24,7 +24,7 @@
 // <4=> Debug 
 
 #ifndef APP_RTC_CONFIG_LOG_LEVEL
-#define APP_RTC_CONFIG_LOG_LEVEL 4
+#define APP_RTC_CONFIG_LOG_LEVEL 3
 #endif
 
 // <o> APP_RTC_CONFIG_INFO_COLOR  - ANSI escape code prefix.

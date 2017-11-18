@@ -325,7 +325,7 @@ static void wifi_task_function(void* pvParameter) {
 	}
 }
 
-int start_wifi_task(void) {
+int wifi_start_task(void) {
 	
 	ret_code_t err_code;
 
@@ -340,7 +340,6 @@ int start_wifi_task(void) {
 	}
 
 	return err_code;
-	
 }
 
 /**
