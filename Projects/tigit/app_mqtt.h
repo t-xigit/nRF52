@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-void mqtt_test(void);
+int mqtt_start_task(void);
 
 /** @} */
 
