@@ -38,8 +38,6 @@
 #define NRF_LOG_MODULE_NAME app_wifi
 NRF_LOG_MODULE_REGISTER();
 
-// WIFI Stuff
-
 #if 0
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Schluesseldienst"
