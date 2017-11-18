@@ -35,6 +35,8 @@
 
 #include "app_rtc.h"
 
+#define NRF_LOG_MODULE_NAME app_wifi
+NRF_LOG_MODULE_REGISTER();
 
 // WIFI Stuff
 

@@ -82,7 +82,7 @@ void print_time(time_t*	unix_time) {
 	asctime = *gmtime(&time);
 
 	strftime(print_buffer, sizeof(print_buffer), "%H:%M:%S %Y-%m-%d", &asctime);
-	NRF_LOG_INFO("%s\n", print_buffer);
+	NRF_LOG_RAW_INFO("%s\n", print_buffer);
 }
 
 
