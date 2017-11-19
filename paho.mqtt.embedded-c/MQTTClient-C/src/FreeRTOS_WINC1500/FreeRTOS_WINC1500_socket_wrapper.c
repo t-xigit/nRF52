@@ -69,33 +69,40 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 	return sentLen;
 }
 
-
-int NetworkConnect(Network* n, char* addr, int port)
-{
+int NetworkConnect(Network* n, char* addr, int port) {
 	//TODO struct freertos_sockaddr sAddr;
-        struct sockaddr_in sAddr;
+	struct sockaddr_in sAddr;
 	int retVal = -1;
+	SOCKET TcpClientSocket = -1;
 	uint32_t ipAddress;
- 
+
 	if ((ipAddress = FreeRTOS_gethostbyname(addr)) == 0)
 		goto exit;
 
 	//TODO sAddr.sin_port = FreeRTOS_htons(port);
-        sAddr.sin_port = _htons(port);
-	 //sAddr.sin_addr = (in_addr) ipAddress;
-         sAddr.sin_addr.s_addr = ipAddress;
+	//sAddr.sin_addr = (in_addr) ipAddress;
 
-	//TODO 
-        //SOCKET socket(uint16 u16Domain, uint8 u8Type, uint8 u8Flags);
-//	if ((n->my_socket = FreeRTOS_socket(FREERTOS_AF_INET, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP)) < 0)
-//		goto exit;
+	sAddr.sin_port = _htons(port);
+	sAddr.sin_addr.s_addr = ipAddress;
+	sAddr.sin_family = AF_INET;
 
-//TODO NMI_API sint8 connect(SOCKET sock, struct sockaddr *pstrAddr, uint8 u8AddrLen);
-//	if ((retVal = FreeRTOS_connect(n->my_socket, &sAddr, sizeof(sAddr))) < 0)
-//	{
-//		FreeRTOS_closesocket(n->my_socket);
-//	    goto exit;
-//	}
+	TcpClientSocket = socket(sAddr.sin_family, SOCK_STREAM, 0);
+	if (TcpClientSocket > 0) {
+		NRF_LOG_INFO("SOCKET CREATE >>> OK");
+		n->my_socket = TcpClientSocket;
+	} else {
+		NRF_LOG_ERROR("SOCKET CREATE ERROR >>> %d", TcpClientSocket);
+	}
+
+	// sockets connect
+	retVal = connect(TcpClientSocket,(struct sockaddr*) sAddr.sin_addr.s_addr, sizeof(ipAddress));
+
+	if (retVal != 0) {
+		NRF_LOG_ERROR(" SOCKET CONNECT CALL >>> FAILED");
+		close(TcpClientSocket);
+	} else {
+		NRF_LOG_INFO("  SOCKET CONNECT CALL >>> OK");
+	}
 
 exit:
 	return retVal;
