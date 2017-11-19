@@ -93,7 +93,7 @@ tstrWifiInitParam param;
 
 tstrSystemTime* sys_time;
 
-TaskHandle_t wifi_task_handle;				/**< Reference to LED0 toggling FreeRTOS task. */
+TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
 SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in RTC event */
 
 /**
@@ -103,6 +103,7 @@ SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in RTC event */
  * \param[in] pvMsg A pointer to a buffer containing the notification parameters.
  */
 static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
+
 	switch (u8MsgType) {
 		case M2M_WIFI_RESP_CON_STATE_CHANGED: {
 			tstrM2mWifiStateChanged* pstrWifiState = (tstrM2mWifiStateChanged*)pvMsg;
@@ -242,14 +243,14 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 											 packetBuffer[42] << 8 |
 											 packetBuffer[43];
 
-				/* Now convert NTP time into everyday time.
+					/* Now convert NTP time into everyday time.
 				 * Unix time starts on Jan 1 1970. In seconds, that's 2208988800.
 				 * Subtract seventy years.
 				 */
 					const uint32_t seventyYears = 2208988800UL;
 					uint32_t epoch = secsSince1900 - seventyYears;
 
-				/* Print the hour, minute and second.
+					/* Print the hour, minute and second.
 				 * GMT is the time at Greenwich Meridian.
 				 */
 					NRF_LOG_INFO("socket_cb: The GMT time is %lu:%02lu:%02lu",
@@ -263,6 +264,21 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 					}
 				}
 			}
+		} break;
+
+		case SOCKET_MSG_CONNECT: {
+			// Connect Event Handler.
+
+			tstrSocketConnectMsg* pstrConnect = (tstrSocketConnectMsg*)pvMsg;
+			if (pstrConnect->s8Error == 0) {
+				uint8 acBuffer[256];
+				uint16 u16MsgSize;
+
+				NRF_LOG_INFO("Connect success!");
+			} else {
+				NRF_LOG_ERROR("Connection Failed, Error: %d", pstrConnect->s8Error);
+			}
+
 		} break;
 
 		default:

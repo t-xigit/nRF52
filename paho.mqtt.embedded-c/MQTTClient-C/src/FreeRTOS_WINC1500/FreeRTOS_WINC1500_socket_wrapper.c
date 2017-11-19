@@ -86,7 +86,7 @@ int NetworkConnect(Network* n, char* addr, int port)
 //	if ((n->my_socket = FreeRTOS_socket(FREERTOS_AF_INET, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP)) < 0)
 //		goto exit;
 
-//TODO 
+//TODO NMI_API sint8 connect(SOCKET sock, struct sockaddr *pstrAddr, uint8 u8AddrLen);
 //	if ((retVal = FreeRTOS_connect(n->my_socket, &sAddr, sizeof(sAddr))) < 0)
 //	{
 //		FreeRTOS_closesocket(n->my_socket);
