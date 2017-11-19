@@ -41,15 +41,24 @@ typedef struct Timer
 	TimeOut_t xTimeOut;
 } Timer;
 
-typedef struct Network Network;
+//typedef struct Network Network;
+//
+//struct Network
+//{
+//	xSocket_t my_socket;
+//	int (*mqttread) (Network*, unsigned char*, int, int);
+//	int (*mqttwrite) (Network*, unsigned char*, int, int);
+//	void (*disconnect) (Network*);
+//};
 
-struct Network
-{
-	xSocket_t my_socket;
-	int (*mqttread) (Network*, unsigned char*, int, int);
-	int (*mqttwrite) (Network*, unsigned char*, int, int);
-	void (*disconnect) (Network*);
-};
+typedef struct Network {
+    int signiture;
+    int size;
+    struct Network* next;
+    struct Network* prev;
+} Network;
+
+//Network* Network;
 
 void TimerInit(Timer*);
 char TimerIsExpired(Timer*);
