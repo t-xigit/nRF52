@@ -20,6 +20,7 @@
 #include "FreeRTOS_WINC1500_socket_wrapper.h"
 #include "socket/include/socket.h"
 
+
 void FreeRTOS_disconnect(Network* n) {
 
 	int16_t ret;
@@ -30,6 +31,14 @@ void FreeRTOS_disconnect(Network* n) {
 	} else
 		NRF_LOG_ERROR("SOCKET CLOSE ERROR");
 }
+
+
+uint32_t FreeRTOS_gethostbyname( const uint8_t *pcHostName ) {
+
+   NRF_LOG_INFO("FreeRTOS_gethostbyname >>> DomainName  >>> %s", pcHostName);
+
+}
+
 
 int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 
@@ -63,15 +72,15 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 int NetworkConnect(Network* n, char* addr, int port)
 {
 	//TODO struct freertos_sockaddr sAddr;
+        struct sockaddr_in sAddr;
 	int retVal = -1;
 	uint32_t ipAddress;
-
-	//TODO 
-//	if ((ipAddress = FreeRTOS_gethostbyname(addr)) == 0)
-//		goto exit;
+ 
+	if ((ipAddress = FreeRTOS_gethostbyname(addr)) == 0)
+		goto exit;
 
 	//TODO sAddr.sin_port = FreeRTOS_htons(port);
-	//TODO sAddr.sin_addr = ipAddress;
+	//sAddr.sin_addr = (in_addr) ipAddress;
 
 	//TODO 
 //	if ((n->my_socket = FreeRTOS_socket(FREERTOS_AF_INET, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP)) < 0)
@@ -88,13 +97,14 @@ exit:
 	return retVal;
 }
 
+
 int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {
-	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
+	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS;	   /* convert milliseconds to ticks */
 	TimeOut_t xTimeOut;
 	int recvLen = 0;
 
-	vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
+	vTaskSetTimeOutState(&xTimeOut);				   /* Record the time at which this function was entered. */
 	do
 	{
 		int rc = 0;
