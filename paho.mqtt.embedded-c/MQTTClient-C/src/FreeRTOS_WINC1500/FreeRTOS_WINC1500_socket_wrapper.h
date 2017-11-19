@@ -18,7 +18,6 @@
 #define __FREERTOS_WINC1500_SOCKET_WRAPPER_H
 
 #include "MQTTFreeRTOS.h"
-#include "FreeRTOS_WINC1500_socket_wrapper.h"
 
 int FreeRTOS_read(Network*, unsigned char*, int, int);
 int FreeRTOS_write(Network*, unsigned char*, int, int);

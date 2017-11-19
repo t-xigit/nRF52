@@ -16,10 +16,9 @@
  *******************************************************************************/
 
 #include "FreeRTOS.h"
+#include "socket/include/socket.h"
 
 #include "FreeRTOS_WINC1500_socket_wrapper.h"
-#include "MQTTFreeRTOS.h"
-#include "socket/include/socket.h"
 
 
 void FreeRTOS_disconnect(Network* n) {
