@@ -29,6 +29,10 @@
 
 #ifdef  USE_WINC1500_WRAPPER
 #include "FreeRTOS_WINC1500_socket_wrapper.h"
+#include "socket/include/socket.h"
+
+// use WINC SOCKET instead
+#define xSocket_t SOCKET
 #endif
 
 typedef struct Timer 
