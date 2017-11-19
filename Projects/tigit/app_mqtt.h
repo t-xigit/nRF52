@@ -19,6 +19,8 @@
 extern "C" {
 #endif
 
+extern SemaphoreHandle_t app_mqtt_Semaphore;
+
 int mqtt_start_task(void);
 
 /** @} */

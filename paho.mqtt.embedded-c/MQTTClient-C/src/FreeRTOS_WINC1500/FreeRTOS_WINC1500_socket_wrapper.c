@@ -20,6 +20,8 @@
 
 #include "FreeRTOS_WINC1500_socket_wrapper.h"
 
+#include "app_wifi.h"
+
 
 void FreeRTOS_disconnect(Network* n) {
 
@@ -33,12 +35,31 @@ void FreeRTOS_disconnect(Network* n) {
 }
 
 uint32_t FreeRTOS_gethostbyname(const uint8_t* pcHostName) {
-	
-	struct sockaddr_in addr;
-        addr.sin_addr.s_addr = 3414440756;
-	NRF_LOG_INFO("FreeRTOS_gethostbyname >>> DomainName  >>> %s", pcHostName);
 
-	return addr.sin_addr.s_addr;
+	char resloved_ip_hex[4];	
+
+	gethostbyname((uint8_t*)pcHostName);
+
+	if (xSemaphoreTake(app_wifi_Semaphore, (TickType_t)3000) == pdTRUE) {	      
+
+		memset(resloved_ip_hex, 0, sizeof(resloved_ip_hex));
+
+		resloved_ip_hex[3] = (uint8_t)((resolved_addr.sin_addr.s_addr >> 24) & 0xff);
+		resloved_ip_hex[2] = (uint8_t)((resolved_addr.sin_addr.s_addr >> 16) & 0xff);
+		resloved_ip_hex[1] = (uint8_t)((resolved_addr.sin_addr.s_addr >> 8) & 0xff);
+		resloved_ip_hex[0] = (uint8_t)(resolved_addr.sin_addr.s_addr & 0xff);
+
+		NRF_LOG_INFO("FreeRTOS_gethostbyname >>> DomainName: %s >>> IP : %d.%d.%d.%d",
+			pcHostName,
+			resloved_ip_hex[0],
+			resloved_ip_hex[1],
+			resloved_ip_hex[2],
+			resloved_ip_hex[3]);
+	} else {
+		NRF_LOG_ERROR("FreeRTOS_gethostbyname >>> TIMEOUT");
+	}
+
+	return resolved_addr.sin_addr.s_addr;
 }
 
 int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {

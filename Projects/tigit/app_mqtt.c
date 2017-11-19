@@ -50,7 +50,8 @@ NRF_LOG_MODULE_REGISTER();
  */
 #define	BLINK_RTC 2
 
-TaskHandle_t mqtt_task_handle;		    /**< Taskhandle for MQTT client */
+TaskHandle_t mqtt_task_handle;		  /**< Taskhandle for MQTT client */
+SemaphoreHandle_t app_mqtt_Semaphore;	  /**< Semaphore for MQTT client */
 
 void messageArrived(MessageData* data)
 {
@@ -72,11 +73,24 @@ static void prvMQTTEchoTask(void *pvParameters)
 	NetworkInit(&network);
 	MQTTClientInit(&client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
 
-	char* address = "nello.mqtt.io";
+        /* Wait till internet connection is established */
+	if (xSemaphoreTake(app_mqtt_Semaphore, (TickType_t)3000) == pdTRUE) {
+		NRF_LOG_INFO("NETWORK CONNECTED");		
+	} else {
+		NRF_LOG_ERROR("NETWORK CONNECT TIMEOUT");
+	}
+
+	char* address = dns_server_address;
 	if ((rc = NetworkConnect(&network, address, 1883)) != 0)
 		printf("Return code from network connect is %d\n", rc);
 
-                vTaskDelay(1500);
+	/* See if we can obtain the semaphore.  If the semaphore is not
+        available wait 10 ticks to see if it becomes free. */
+	if (xSemaphoreTake(app_mqtt_Semaphore, (TickType_t)3000) == pdTRUE) {
+		NRF_LOG_INFO("NETWORK CONNECTED");		
+	} else {
+		NRF_LOG_ERROR("NETWORK CONNECT TIMEOUT");
+	}
 
 #if defined(MQTT_TASK)
 	if ((rc = MQTTStartTask(&client)) != pdPASS)
@@ -140,7 +154,19 @@ int mqtt_start_task(void){
 	
     ret_code_t err_code;
 
-    err_code = (ret_code_t)xTaskCreate(prvMQTTEchoTask,	/* The function that implements the task. */
+	/* Attempt to create a semaphore. */
+	app_mqtt_Semaphore = xSemaphoreCreateBinary();
+
+	if (app_mqtt_Semaphore == NULL) {
+		/* There was insufficient FreeRTOS heap available for the semaphore to
+	       be created successfully. */
+	} else {
+		/* The semaphore can now be used. Its handle is stored in the
+		  xSemahore variable.  Calling xSemaphoreTake() on the semaphore here
+		  will fail until the semaphore has first been given. */
+	}
+
+	err_code = (ret_code_t)xTaskCreate(prvMQTTEchoTask,	/* The function that implements the task. */
 		    "MQTT",					/* Just a text name for the task to aid debugging. */
 		    configMINIMAL_STACK_SIZE + 800,		/* The stack size is defined in FreeRTOSIPConfig.h. */
 		    NULL,				/* The task parameter, not used in this case. */

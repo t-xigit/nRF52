@@ -34,6 +34,7 @@
 #include "socket.h"
 
 #include "app_rtc.h"
+#include "app_mqtt.h"
 #include "app_config.h"
 
 #define NRF_LOG_MODULE_NAME app_wifi
@@ -83,7 +84,7 @@ NRF_LOG_MODULE_REGISTER();
 /** Wi-Fi status variable. */
 static bool gbConnectedWifi = false;
 /** Host name placeholder. */
-static char dns_server_address[HOSTNAME_MAX_SIZE];
+char dns_server_address[HOSTNAME_MAX_SIZE];
 
 /** UDP socket handlers. */
 static SOCKET udp_socket = -1;
@@ -92,12 +93,15 @@ static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE];	/** Receive buffer d
 
 static uint8 gu8SleepStatus;				/**< Wi-Fi Sleep status. */
 
+struct sockaddr_in resolved_addr;
+
 tstrWifiInitParam param;
 
 tstrSystemTime* sys_time;
 
 TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
-SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in RTC event */
+SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in WIFI ISR */
+SemaphoreHandle_t app_wifi_Semaphore;		/**< Semaphore for WIFI client */
 
 /**
  * \brief Callback to get the Wi-Fi status update.
@@ -129,9 +133,9 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			NRF_LOG_INFO("wifi_cb: M2M_WIFI_REQ_DHCP_CONF: IP is %u.%u.%u.%u",
 				pu8IPAddress[0], pu8IPAddress[1], pu8IPAddress[2], pu8IPAddress[3]);
 			gbConnectedWifi = true;
-			memcpy(dns_server_address, (uint8_t*)MQTT_BROKER_HOSTNAME, strlen(MQTT_BROKER_HOSTNAME));
+			//memcpy(dns_server_address, (uint8_t*)MQTT_BROKER_HOSTNAME, strlen(MQTT_BROKER_HOSTNAME));
 			/* Obtain the IP Address by network name */
-			gethostbyname((uint8_t*)dns_server_address);
+			//gethostbyname((uint8_t*)dns_server_address);
 			break;
 		}
 
@@ -152,6 +156,8 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			unix_time = mktime(&time_struct);
 
 			NRF_LOG_INFO("%s\n\r", ctime(&unix_time));
+
+			xSemaphoreGive(app_mqtt_Semaphore);
 
 			break;
 
@@ -176,29 +182,30 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
  * \param[in] u32ServerIP Server IP.
  */
 static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
-	struct sockaddr_in addr;
+	
 	int16_t ret;
-	char ip_hex[4];
+	char resloved_ip_hex[4];
+	uint32_t temp_u32ServerIP = u32ServerIP;
+	resolved_addr.sin_family = AF_INET;
+	resolved_addr.sin_port = _htons(MAIN_SERVER_PORT_FOR_UDP);
+	resolved_addr.sin_addr.s_addr = u32ServerIP;
 
-	memset(ip_hex, 0, sizeof(ip_hex));
+	memset(resloved_ip_hex, 0, sizeof(resloved_ip_hex));
 
-	addr.sin_family = AF_INET;
-	addr.sin_port = _htons(MAIN_SERVER_PORT_FOR_UDP);
-	addr.sin_addr.s_addr = u32ServerIP;
+	resloved_ip_hex[3] = (uint8_t)((u32ServerIP >> 24) & 0xff);
+	resloved_ip_hex[2] = (uint8_t)((u32ServerIP >> 16) & 0xff);
+	resloved_ip_hex[1] = (uint8_t)((u32ServerIP >> 8) & 0xff);
+	resloved_ip_hex[0] = (uint8_t)(u32ServerIP & 0xff);
 
-	ip_hex[3] = (uint8_t)((u32ServerIP >> 24) & 0xff);
-	ip_hex[2] = (uint8_t)((u32ServerIP >> 16) & 0xff);
-	ip_hex[1] = (uint8_t)((u32ServerIP >> 8) & 0xff);
-	ip_hex[0] = (uint8_t)(u32ServerIP & 0xff);
-
-	NRF_LOG_INFO("resolve_cb< >>> DomainName: %s >>> IP : %d.%d.%d.%d", 
-	pu8DomainName,
-	ip_hex[0],
-	ip_hex[1],
-	ip_hex[2],
-	ip_hex[3]);
+	NRF_LOG_INFO("resolve_cb >>> DomainName: %s >>> IP : %d.%d.%d.%d",
+		pu8DomainName,
+		resloved_ip_hex[0],
+		resloved_ip_hex[1],
+		resloved_ip_hex[2],
+		resloved_ip_hex[3]);
 
 	m2m_wifi_get_sytem_time();
+	xSemaphoreGive(app_wifi_Semaphore);
 }
 
 /**
@@ -332,6 +339,8 @@ static void wifi_task_function(void* pvParameter) {
 	m_winc_int_semaphore = xSemaphoreCreateBinary();
 	ASSERT(NULL != m_winc_int_semaphore);
 
+        memcpy(dns_server_address, (uint8_t*)MQTT_BROKER_HOSTNAME, strlen(MQTT_BROKER_HOSTNAME));
+
 	/* Initialize the BSP. */
 	nm_bsp_init();
 
@@ -387,6 +396,19 @@ static void wifi_task_function(void* pvParameter) {
 int wifi_start_task(void) {
 	
 	ret_code_t err_code;
+
+        /* Attempt to create a semaphore. */
+	app_wifi_Semaphore = xSemaphoreCreateBinary();
+
+	if (app_wifi_Semaphore == NULL) {
+		/* There was insufficient FreeRTOS heap available for the semaphore to
+	       be created successfully. */
+	} else {
+		/* The semaphore can now be used. Its handle is stored in the
+		  xSemahore variable.  Calling xSemaphoreTake() on the semaphore here
+		  will fail until the semaphore has first been given. */
+	}
+
 
 	/* Create task for LED0 blinking with priority set to 2 */
 	err_code = (ret_code_t)xTaskCreate(wifi_task_function, "LAN", configMINIMAL_STACK_SIZE *10, NULL, 2, &wifi_task_handle);
