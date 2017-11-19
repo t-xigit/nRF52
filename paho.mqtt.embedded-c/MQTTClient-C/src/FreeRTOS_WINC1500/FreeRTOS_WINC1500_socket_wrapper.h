@@ -20,11 +20,11 @@
 #include "FreeRTOS/MQTTFreeRTOS.h"
 #include "socket/include/socket.h"
 
-int FreeRTOS_read(Network*, unsigned char*, int, int);
-int FreeRTOS_write(Network*, unsigned char*, int, int);
-void FreeRTOS_disconnect(Network*);
-
-int NetworkConnect(Network*, char*, int);
+//int FreeRTOS_read(Network*, unsigned char*, int, int);
+//int FreeRTOS_write(Network*, unsigned char*, int, int);
+//void FreeRTOS_disconnect(Network*);
+//
+//int NetworkConnect(Network*, char*, int);
 /*int NetworkConnectTLS(Network*, char*, int, SlSockSecureFiles_t*, unsigned char, unsigned int, char);*/
 
 #endif
