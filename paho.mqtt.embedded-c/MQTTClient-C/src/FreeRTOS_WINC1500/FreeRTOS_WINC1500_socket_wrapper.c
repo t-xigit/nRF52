@@ -22,6 +22,9 @@
 
 #include "app_wifi.h"
 
+/** Host name placeholder. */
+char dns_server_address[HOSTNAME_MAX_SIZE];
+
 
 void FreeRTOS_disconnect(Network* n) {
 
@@ -36,9 +39,10 @@ void FreeRTOS_disconnect(Network* n) {
 
 uint32_t FreeRTOS_gethostbyname(const uint8_t* pcHostName) {
 
-	char resloved_ip_hex[4];	
+	char resloved_ip_hex[4];
 
-	gethostbyname((uint8_t*)pcHostName);
+	memcpy(dns_server_address, pcHostName, strlen(pcHostName));
+	gethostbyname((uint8_t*)dns_server_address);
 
 	if (xSemaphoreTake(app_wifi_Semaphore, (TickType_t)3000) == pdTRUE) {	      
 

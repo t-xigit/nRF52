@@ -40,9 +40,8 @@
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
-#define	TASK_DELAY 600	      /**< Task	delay. Delays a	LED0 task for 200 ms */
-#define	TIMER_PERIOD 500      /**< Timer period. LED1 timer will expire	after 1000 ms */
-#define	RTC_PERIOD 1000000ULL /**< Timer period. LED1 timer will expire	after 1000 ms */
+#define MQTT_BROKER_HOSTNAME "mqtt.nello.io"	   /**< MQTT Broker Address */
+#define MQTT_BROKER_PORT      1833		   /**< MQTT Broker Port */
 
 /**
  * @brief RTC instance number used for blinking
@@ -74,15 +73,15 @@ static void prvMQTTEchoTask(void *pvParameters)
 	MQTTClientInit(&client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
 
         /* Wait till internet connection is established */
-	if (xSemaphoreTake(app_mqtt_Semaphore, (TickType_t)3000) == pdTRUE) {
+	if (xSemaphoreTake(app_wifi_Semaphore, (TickType_t)5000) == pdTRUE) {
 		NRF_LOG_INFO("NETWORK CONNECTED");		
 	} else {
 		NRF_LOG_ERROR("NETWORK CONNECT TIMEOUT");
 	}
 
-	char* address = dns_server_address;
-	if ((rc = NetworkConnect(&network, address, 1883)) != 0)
-		printf("Return code from network connect is %d\n", rc);
+	char* address = MQTT_BROKER_HOSTNAME;
+	if ((rc = NetworkConnect(&network, address, MQTT_BROKER_PORT)) != 0)
+		NRF_LOG_INFO("Return code from network connect is %d", rc);
 
 	/* See if we can obtain the semaphore.  If the semaphore is not
         available wait 10 ticks to see if it becomes free. */

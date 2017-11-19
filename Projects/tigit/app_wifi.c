@@ -67,7 +67,7 @@ NRF_LOG_MODULE_REGISTER();
 #define MAIN_PS_SLEEP_MODE M2M_PS_DEEP_AUTOMATIC /* M2M_NO_PS / M2M_PS_DEEP_AUTOMATIC / M2M_PS_MANUAL */
 
 /** Using NTP server information */
-#define MQTT_BROKER_HOSTNAME "mqtt.nello.io"
+
 
 #define MAIN_WORLDWIDE_NTP_POOL_HOSTNAME "pool.ntp.org"
 #define MAIN_ASIA_NTP_POOL_HOSTNAME "asia.pool.ntp.org"
@@ -83,8 +83,6 @@ NRF_LOG_MODULE_REGISTER();
 
 /** Wi-Fi status variable. */
 static bool gbConnectedWifi = false;
-/** Host name placeholder. */
-char dns_server_address[HOSTNAME_MAX_SIZE];
 
 /** UDP socket handlers. */
 static SOCKET udp_socket = -1;
@@ -282,6 +280,8 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				uint8 acBuffer[256];
 				uint16 u16MsgSize;
 
+                                xSemaphoreGive(app_mqtt_Semaphore);
+
 				NRF_LOG_INFO("Socket Connected");
 			} else {
 				NRF_LOG_ERROR("Socket Connection Failed, Error: %d", pstrConnect->s8Error);
@@ -337,9 +337,7 @@ static void wifi_task_function(void* pvParameter) {
 	sint8 ret = M2M_SUCCESS;
 
 	m_winc_int_semaphore = xSemaphoreCreateBinary();
-	ASSERT(NULL != m_winc_int_semaphore);
-
-        memcpy(dns_server_address, (uint8_t*)MQTT_BROKER_HOSTNAME, strlen(MQTT_BROKER_HOSTNAME));
+	ASSERT(NULL != m_winc_int_semaphore);        
 
 	/* Initialize the BSP. */
 	nm_bsp_init();
