@@ -76,7 +76,7 @@
 // <4=> Debug 
 
 #ifndef APP_WIFI_CONFIG_LOG_LEVEL
-#define APP_WIFI_CONFIG_LOG_LEVEL 3
+#define APP_WIFI_CONFIG_LOG_LEVEL 4
 #endif
 
 // <o> APP_WIFI_CONFIG_INFO_COLOR  - ANSI escape code prefix.

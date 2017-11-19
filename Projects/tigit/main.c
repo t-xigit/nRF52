@@ -156,7 +156,7 @@ int main(void) {
         err_code = wifi_start_task();
 	APP_ERROR_CHECK(err_code);
 	
-	err_code = mqtt_start_task();
+//	err_code = mqtt_start_task();
 	APP_ERROR_CHECK(err_code);	
 
 	/* Create task for timer with priority set to 2 */
