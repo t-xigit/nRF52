@@ -83,7 +83,7 @@ void TimerInit(Timer* timer)
 	memset(&timer->xTimeOut, '\0', sizeof(timer->xTimeOut));
 }
 
-
+#if 0
 int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {
 	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
@@ -141,16 +141,6 @@ void FreeRTOS_disconnect(Network* n)
 	FreeRTOS_closesocket(n->my_socket);
 }
 
-
-void NetworkInit(Network* n)
-{
-	n->my_socket = 0;
-	n->mqttread = FreeRTOS_read;
-	n->mqttwrite = FreeRTOS_write;
-	n->disconnect = FreeRTOS_disconnect;
-}
-
-
 int NetworkConnect(Network* n, char* addr, int port)
 {
 	struct freertos_sockaddr sAddr;
@@ -176,6 +166,15 @@ exit:
 	return retVal;
 }
 
+#endif
+
+void NetworkInit(Network* n)
+{
+	n->my_socket = 0;
+	n->mqttread = FreeRTOS_read;
+	n->mqttwrite = FreeRTOS_write;
+	n->disconnect = FreeRTOS_disconnect;
+}
 
 #if 0
 int NetworkConnectTLS(Network *n, char* addr, int port, SlSockSecureFiles_t* certificates, unsigned char sec_method, unsigned int cipher, char server_verify)

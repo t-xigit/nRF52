@@ -25,20 +25,16 @@ void FreeRTOS_disconnect(Network* n) {
 
 	int16_t ret;
 
-	ret = close(n->my_socket);
+	ret = close(n -> my_socket);
 	if (ret == SOCK_ERR_NO_ERROR) {
 		NRF_LOG_DEBUG("SOCKET CLOSED");
 	} else
 		NRF_LOG_ERROR("SOCKET CLOSE ERROR");
 }
 
-
-uint32_t FreeRTOS_gethostbyname( const uint8_t *pcHostName ) {
-
-   NRF_LOG_INFO("FreeRTOS_gethostbyname >>> DomainName  >>> %s", pcHostName);
-
+uint32_t FreeRTOS_gethostbyname(const uint8_t* pcHostName) {
+	NRF_LOG_INFO("FreeRTOS_gethostbyname >>> DomainName  >>> %s", pcHostName);
 }
-
 
 int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 
