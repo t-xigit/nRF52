@@ -33,7 +33,12 @@ void FreeRTOS_disconnect(Network* n) {
 }
 
 uint32_t FreeRTOS_gethostbyname(const uint8_t* pcHostName) {
+	
+	struct sockaddr_in addr;
+        addr.sin_addr.s_addr = 3414440756;
 	NRF_LOG_INFO("FreeRTOS_gethostbyname >>> DomainName  >>> %s", pcHostName);
+
+	return addr.sin_addr.s_addr;
 }
 
 int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
@@ -76,9 +81,12 @@ int NetworkConnect(Network* n, char* addr, int port)
 		goto exit;
 
 	//TODO sAddr.sin_port = FreeRTOS_htons(port);
-	//sAddr.sin_addr = (in_addr) ipAddress;
+        sAddr.sin_port = _htons(port);
+	 //sAddr.sin_addr = (in_addr) ipAddress;
+         sAddr.sin_addr.s_addr = ipAddress;
 
 	//TODO 
+        //SOCKET socket(uint16 u16Domain, uint8 u8Type, uint8 u8Flags);
 //	if ((n->my_socket = FreeRTOS_socket(FREERTOS_AF_INET, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP)) < 0)
 //		goto exit;
 

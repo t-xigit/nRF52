@@ -22,6 +22,7 @@
 /* Application includes. */
 #include "app_config.h"
 #include "app_mqtt.h"
+#include "app_wifi.h"
 
 #include "MQTTFreeRTOS.h"
 #include "MQTTClient.h"
@@ -71,7 +72,7 @@ static void prvMQTTEchoTask(void *pvParameters)
 	NetworkInit(&network);
 	MQTTClientInit(&client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
 
-	char* address = "iot.eclipse.org";
+	char* address = "nello.mqtt.io";
 	if ((rc = NetworkConnect(&network, address, 1883)) != 0)
 		printf("Return code from network connect is %d\n", rc);
 
