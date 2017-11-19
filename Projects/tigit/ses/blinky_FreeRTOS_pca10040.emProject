@@ -126,6 +126,8 @@
             <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/FreeRTOS_WINC1500/MQTTFreeRTOS.c" />
             <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/FreeRTOS_WINC1500/MQTTFreeRTOS.h" />
             <configuration Name="Debug" build_exclude_from_build="No" />
+            <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/FreeRTOS_WINC1500/FreeRTOS_WINC1500_socket_wrapper.c" />
+            <file file_name="../../../paho.mqtt.embedded-c/MQTTClient-C/src/FreeRTOS_WINC1500/FreeRTOS_WINC1500_socket_wrapper.h" />
           </folder>
           <configuration Name="Debug" build_exclude_from_build="No" />
         </folder>

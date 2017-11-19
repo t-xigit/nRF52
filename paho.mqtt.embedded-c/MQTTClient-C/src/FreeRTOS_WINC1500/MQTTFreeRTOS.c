@@ -110,7 +110,7 @@ int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
 	return recvLen;
 }
 
-
+#if 0
 int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {
 	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
@@ -135,19 +135,7 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
 
 	return sentLen;
 }
-
-
-void FreeRTOS_disconnect(Network* n)
-{
-  int16_t ret;
-//TODO FreeRTOS_closesocket(n->my_socket);
-	
-    ret = close(n -> my_socket);
-    if (ret == SOCK_ERR_NO_ERROR) {
-      NRF_LOG_DEBUG("SOCKET CLOSED");
-    }else NRF_LOG_ERROR("SOCKET CLOSE ERROR");
-}
-
+#endif
 
 void NetworkInit(Network* n)
 {
