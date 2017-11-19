@@ -66,12 +66,15 @@ NRF_LOG_MODULE_REGISTER();
 #define MAIN_PS_SLEEP_MODE M2M_PS_DEEP_AUTOMATIC /* M2M_NO_PS / M2M_PS_DEEP_AUTOMATIC / M2M_PS_MANUAL */
 
 /** Using NTP server information */
+#define MQTT_BROKER_HOSTNAME "mqtt.nello.io"
+
 #define MAIN_WORLDWIDE_NTP_POOL_HOSTNAME "pool.ntp.org"
 #define MAIN_ASIA_NTP_POOL_HOSTNAME "asia.pool.ntp.org"
 #define MAIN_EUROPE_NTP_POOL_HOSTNAME "europe.pool.ntp.org"
 #define MAIN_NAMERICA_NTP_POOL_HOSTNAME "north-america.pool.ntp.org"
 #define MAIN_OCEANIA_NTP_POOL_HOSTNAME "oceania.pool.ntp.org"
 #define MAIN_SAMERICA_NTP_POOL_HOSTNAME "south-america.pool.ntp.org"
+
 #define MAIN_SERVER_PORT_FOR_UDP (123)
 #define MAIN_DEFAULT_ADDRESS 0xFFFFFFFF /* "255.255.255.255" */
 #define MAIN_DEFAULT_PORT (6666)
@@ -126,7 +129,7 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			NRF_LOG_INFO("wifi_cb: M2M_WIFI_REQ_DHCP_CONF: IP is %u.%u.%u.%u",
 				pu8IPAddress[0], pu8IPAddress[1], pu8IPAddress[2], pu8IPAddress[3]);
 			gbConnectedWifi = true;
-			memcpy(dns_server_address, (uint8_t*)MAIN_WORLDWIDE_NTP_POOL_HOSTNAME, strlen(MAIN_WORLDWIDE_NTP_POOL_HOSTNAME));
+			memcpy(dns_server_address, (uint8_t*)MQTT_BROKER_HOSTNAME, strlen(MQTT_BROKER_HOSTNAME));
 			/* Obtain the IP Address by network name */
 			gethostbyname((uint8_t*)dns_server_address);
 			break;
@@ -173,29 +176,27 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
  * \param[in] u32ServerIP Server IP.
  */
 static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
-	
 	struct sockaddr_in addr;
-	int8_t cDataBuf[48];
 	int16_t ret;
+	char ip_hex[4];
 
-	memset(cDataBuf, 0, sizeof(cDataBuf));
-	cDataBuf[0] = '\x1b'; /* time query */
+	memset(ip_hex, 0, sizeof(ip_hex));
 
-	NRF_LOG_INFO("resolve_cb: DomainName %s", pu8DomainName);
+	addr.sin_family = AF_INET;
+	addr.sin_port = _htons(MAIN_SERVER_PORT_FOR_UDP);
+	addr.sin_addr.s_addr = u32ServerIP;
 
-	if (udp_socket >= 0) {
-		/* Set NTP server socket address structure. */
-		addr.sin_family = AF_INET;
-		addr.sin_port = _htons(MAIN_SERVER_PORT_FOR_UDP);
-		addr.sin_addr.s_addr = u32ServerIP;
+	ip_hex[3] = (uint8_t)((u32ServerIP >> 24) & 0xff);
+	ip_hex[2] = (uint8_t)((u32ServerIP >> 16) & 0xff);
+	ip_hex[1] = (uint8_t)((u32ServerIP >> 8) & 0xff);
+	ip_hex[0] = (uint8_t)(u32ServerIP & 0xff);
 
-		/*Send an NTP time query to the NTP server*/
-		ret = sendto(udp_socket, (int8_t*)&cDataBuf, sizeof(cDataBuf), 0, (struct sockaddr*)&addr, sizeof(addr));
-		if (ret != M2M_SUCCESS) {
-			NRF_LOG_INFO("resolve_cb: failed to send  error!");
-			return;
-		}
-	}
+	NRF_LOG_INFO("resolve_cb< >>> DomainName: %s >>> IP : %d.%d.%d.%d", 
+	pu8DomainName,
+	ip_hex[0],
+	ip_hex[1],
+	ip_hex[2],
+	ip_hex[3]);
 
 	m2m_wifi_get_sytem_time();
 }
@@ -243,7 +244,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 											 packetBuffer[42] << 8 |
 											 packetBuffer[43];
 
-					/* Now convert NTP time into everyday time.
+				/* Now convert NTP time into everyday time.
 				 * Unix time starts on Jan 1 1970. In seconds, that's 2208988800.
 				 * Subtract seventy years.
 				 */
@@ -274,9 +275,9 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				uint8 acBuffer[256];
 				uint16 u16MsgSize;
 
-				NRF_LOG_INFO("Connect success!");
+				NRF_LOG_INFO("Socket Connect success!");
 			} else {
-				NRF_LOG_ERROR("Connection Failed, Error: %d", pstrConnect->s8Error);
+				NRF_LOG_ERROR("Socket Connection Failed, Error: %d", pstrConnect->s8Error);
 			}
 
 		} break;
