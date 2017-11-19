@@ -17,9 +17,17 @@
 #if !defined(MQTTFreeRTOS_H)
 #define MQTTFreeRTOS_H
 
+#define USE_WINC1500_WRAPPER 1
 #include "FreeRTOS.h"
+#ifndef  USE_WINC1500_WRAPPER
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP.h"
+#endif
+
+#idef  USE_WINC1500_WRAPPER
+#include "FreeRTOS_WINC1500_socket_wrapper.h"
+#endif
+
 #include "semphr.h"
 #include "task.h"
 

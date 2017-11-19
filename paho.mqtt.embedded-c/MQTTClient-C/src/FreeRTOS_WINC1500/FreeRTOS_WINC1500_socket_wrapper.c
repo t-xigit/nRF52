@@ -58,3 +58,57 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 
 	return sentLen;
 }
+
+
+int NetworkConnect(Network* n, char* addr, int port)
+{
+	//TODO struct freertos_sockaddr sAddr;
+	int retVal = -1;
+	uint32_t ipAddress;
+
+	//TODO 
+//	if ((ipAddress = FreeRTOS_gethostbyname(addr)) == 0)
+//		goto exit;
+
+	//TODO sAddr.sin_port = FreeRTOS_htons(port);
+	//TODO sAddr.sin_addr = ipAddress;
+
+	//TODO 
+//	if ((n->my_socket = FreeRTOS_socket(FREERTOS_AF_INET, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP)) < 0)
+//		goto exit;
+
+//TODO 
+//	if ((retVal = FreeRTOS_connect(n->my_socket, &sAddr, sizeof(sAddr))) < 0)
+//	{
+//		FreeRTOS_closesocket(n->my_socket);
+//	    goto exit;
+//	}
+
+exit:
+	return retVal;
+}
+
+int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
+{
+	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
+	TimeOut_t xTimeOut;
+	int recvLen = 0;
+
+	vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
+	do
+	{
+		int rc = 0;
+
+		//TODO FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
+		//TODO rc = FreeRTOS_recv(n->my_socket, buffer + recvLen, len - recvLen, 0);
+		if (rc > 0)
+			recvLen += rc;
+		else if (rc < 0)
+		{
+			recvLen = rc;
+			break;
+		}
+	} while (recvLen < len && xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) == pdFALSE);
+
+	return recvLen;
+}
