@@ -27,7 +27,7 @@
 #include "FreeRTOS_IP.h"
 #endif
 
-#idef  USE_WINC1500_WRAPPER
+#ifdef  USE_WINC1500_WRAPPER
 #include "FreeRTOS_WINC1500_socket_wrapper.h"
 #endif
 
