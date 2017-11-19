@@ -87,15 +87,16 @@ int NetworkConnect(Network* n, char* addr, int port) {
 	sAddr.sin_family = AF_INET;
 
 	TcpClientSocket = socket(sAddr.sin_family, SOCK_STREAM, 0);
-	if (TcpClientSocket > 0) {
+	if (TcpClientSocket < 0) {
+		NRF_LOG_ERROR("SOCKET CREATE ERROR >>> %d", TcpClientSocket);
+
+	} else {
 		NRF_LOG_INFO("SOCKET CREATE >>> OK");
 		n->my_socket = TcpClientSocket;
-	} else {
-		NRF_LOG_ERROR("SOCKET CREATE ERROR >>> %d", TcpClientSocket);
 	}
 
-	// sockets connect
-	retVal = connect(TcpClientSocket,(struct sockaddr*) sAddr.sin_addr.s_addr, sizeof(ipAddress));
+	// sockets connect  	
+        retVal = connect(TcpClientSocket, (struct sockaddr*) &sAddr, sizeof(ipAddress));
 
 	if (retVal != 0) {
 		NRF_LOG_ERROR(" SOCKET CONNECT CALL >>> FAILED");
@@ -107,7 +108,6 @@ int NetworkConnect(Network* n, char* addr, int port) {
 exit:
 	return retVal;
 }
-
 
 int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {

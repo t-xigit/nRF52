@@ -275,7 +275,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				uint8 acBuffer[256];
 				uint16 u16MsgSize;
 
-				NRF_LOG_INFO("Socket Connect success!");
+				NRF_LOG_INFO("Socket Connected");
 			} else {
 				NRF_LOG_ERROR("Socket Connection Failed, Error: %d", pstrConnect->s8Error);
 			}
@@ -389,7 +389,7 @@ int wifi_start_task(void) {
 	ret_code_t err_code;
 
 	/* Create task for LED0 blinking with priority set to 2 */
-	err_code = (ret_code_t)xTaskCreate(wifi_task_function, "LAN", configMINIMAL_STACK_SIZE + 800, NULL, 2, &wifi_task_handle);
+	err_code = (ret_code_t)xTaskCreate(wifi_task_function, "LAN", configMINIMAL_STACK_SIZE *10, NULL, 2, &wifi_task_handle);
 	if (err_code == pdPASS) {
 		NRF_LOG_INFO("RTC TASK CREATED");
 		err_code = NRF_SUCCESS;

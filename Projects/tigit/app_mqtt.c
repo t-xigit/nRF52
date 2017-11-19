@@ -76,6 +76,8 @@ static void prvMQTTEchoTask(void *pvParameters)
 	if ((rc = NetworkConnect(&network, address, 1883)) != 0)
 		printf("Return code from network connect is %d\n", rc);
 
+                vTaskDelay(1500);
+
 #if defined(MQTT_TASK)
 	if ((rc = MQTTStartTask(&client)) != pdPASS)
 		printf("Return code from start tasks is %d\n", rc);
@@ -92,7 +94,8 @@ static void prvMQTTEchoTask(void *pvParameters)
 	if ((rc = MQTTSubscribe(&client, "FreeRTOS/sample/#", 2, messageArrived)) != 0)
 		printf("Return code from MQTT subscribe is %d\n", rc);
 
-	while (++count)
+	count = 10;
+	while (count--)
 	{
 		MQTTMessage message;
 		char payload[30];
