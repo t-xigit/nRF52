@@ -131,6 +131,8 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			NRF_LOG_INFO("wifi_cb: M2M_WIFI_REQ_DHCP_CONF: IP is %u.%u.%u.%u",
 				pu8IPAddress[0], pu8IPAddress[1], pu8IPAddress[2], pu8IPAddress[3]);
 			gbConnectedWifi = true;
+
+                        m2m_wifi_get_sytem_time();
 			//memcpy(dns_server_address, (uint8_t*)MQTT_BROKER_HOSTNAME, strlen(MQTT_BROKER_HOSTNAME));
 			/* Obtain the IP Address by network name */
 			//gethostbyname((uint8_t*)dns_server_address);
@@ -139,10 +141,13 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 
 		case M2M_WIFI_RESP_GET_SYS_TIME:
 
-			NRF_LOG_INFO("M2M_WIFI_RESP_GET_SYS_TIME: ");
+			NRF_LOG_INFO("wifi_cb: M2M_WIFI_RESP_GET_SYS_TIME");
 
 			struct tm time_struct;
+			memset(&time_struct, 0, sizeof(struct tm));
 			sys_time = (tstrSystemTime*)pvMsg;
+
+                        NRF_LOG_INFO("%d\n\r", sys_time);
 
 			time_struct.tm_sec = (int)sys_time->u8Second;
 			time_struct.tm_min = (int)sys_time->u8Minute;
@@ -153,7 +158,7 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 
 			unix_time = mktime(&time_struct);
 
-			NRF_LOG_INFO("%s\n\r", ctime(&unix_time));
+			NRF_LOG_INFO("%s", ctime(&unix_time));
 
 			xSemaphoreGive(app_wifi_Semaphore);
 
@@ -161,13 +166,14 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 
 		case M2M_WIFI_RESP_CURRENT_RSSI:
 
-			NRF_LOG_INFO("M2M_WIFI_RESP_CURRENT_RSSI: ");
+			NRF_LOG_INFO("wifi_cb: M2M_WIFI_RESP_CURRENT_RSSI");
 
 			sint8* rssi = (sint8*)pvMsg;
 			M2M_INFO("ch rssi %d\n", *rssi);
 			break;
 
 		default: {
+                NRF_LOG_ERROR("<<<<<<< wifi_cb >>>>>>");
 			break;
 		}
 	}
@@ -201,8 +207,7 @@ static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
 		resloved_ip_hex[1],
 		resloved_ip_hex[2],
 		resloved_ip_hex[3]);
-
-	m2m_wifi_get_sytem_time();
+	
 	xSemaphoreGive(app_wifi_Semaphore);
 }
 
@@ -276,7 +281,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			// Connect Event Handler.
                         NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_CONNECT");
 
-			tstrSocketConnectMsg* pstrConnect = (tstrSocketConnectMsg*)pvMsg;
+			tstrSocketConnectMsg* pstrConnect = (tstrSocketConnectMsg*)pvMsg;                        
 			if (pstrConnect->s8Error == 0) {
 				uint8 acBuffer[256];
 				uint16 u16MsgSize;
@@ -385,7 +390,7 @@ static void wifi_task_function(void* pvParameter) {
 
 	while (true) {
 		bsp_board_led_invert(BSP_BOARD_LED_3);
-		NRF_LOG_INFO("WIFI TASK\n\r");
+		NRF_LOG_DEBUG("WIFI TASK");
 
 		while (m2m_wifi_handle_events(NULL) != M2M_SUCCESS) {
 		}

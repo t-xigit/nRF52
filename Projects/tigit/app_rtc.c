@@ -75,6 +75,7 @@ static SemaphoreHandle_t m_rtc_semaphore;
  * @brief Function to convert Unix time	into string and	print it
  */
 void print_time(time_t*	unix_time) {
+
 	#define	PRINT_BUFFER_SIZE 80
 	//const time_t timezone_delta = 60 * 60 * 2;
 	struct tm asctime;
