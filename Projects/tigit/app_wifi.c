@@ -100,6 +100,9 @@ tstrSystemTime* sys_time;
 TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
 SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in WIFI ISR */
 SemaphoreHandle_t app_wifi_Semaphore;		/**< Semaphore for WIFI client */
+SemaphoreHandle_t app_dns_Semaphore;		/**< Semaphore for dns reslove wait */
+
+
 
 /**
  * \brief Callback to get the Wi-Fi status update.
@@ -208,7 +211,7 @@ static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
 		resloved_ip_hex[2],
 		resloved_ip_hex[3]);
 	
-	xSemaphoreGive(app_wifi_Semaphore);
+	xSemaphoreGive(app_dns_Semaphore);
 }
 
 /**
@@ -345,8 +348,11 @@ static void wifi_task_function(void* pvParameter) {
 	sint8 ret = M2M_SUCCESS;
 
 	m_winc_int_semaphore = xSemaphoreCreateBinary();
-	ASSERT(NULL != m_winc_int_semaphore);        
+	ASSERT(NULL != m_winc_int_semaphore);
 
+	 app_dns_Semaphore = xSemaphoreCreateBinary();
+	 ASSERT(NULL != m_winc_int_semaphore);
+        
 	/* Initialize the BSP. */
 	nm_bsp_init();
 

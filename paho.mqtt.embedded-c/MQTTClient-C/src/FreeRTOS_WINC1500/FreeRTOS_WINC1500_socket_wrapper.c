@@ -44,7 +44,7 @@ uint32_t FreeRTOS_gethostbyname(const uint8_t* pcHostName) {
 	memcpy(dns_server_address, pcHostName, strlen(pcHostName));
 	gethostbyname((uint8_t*)dns_server_address);
 
-	if (xSemaphoreTake(app_wifi_Semaphore, (TickType_t)3000) == pdTRUE) {	      
+	if (xSemaphoreTake(app_dns_Semaphore, (TickType_t)3000) == pdTRUE) {	      
 
 		memset(resloved_ip_hex, 0, sizeof(resloved_ip_hex));
 
@@ -99,7 +99,9 @@ int NetworkConnect(Network* n, char* addr, int port) {
 	struct sockaddr_in sAddr;
 	int retVal = -1;
 	SOCKET TcpClientSocket = -1;
-	uint32_t ipAddress;
+	uint32_t ipAddress;   
+	 
+        memset(&sAddr, 0, sizeof(struct sockaddr));
 
 	if ((ipAddress = FreeRTOS_gethostbyname(addr)) == 0)
 		goto exit;
@@ -107,21 +109,20 @@ int NetworkConnect(Network* n, char* addr, int port) {
 	//TODO sAddr.sin_port = FreeRTOS_htons(port);
 	//sAddr.sin_addr = (in_addr) ipAddress;
 
-	sAddr.sin_port = _htons(port);
-	sAddr.sin_addr.s_addr = ipAddress;
 	sAddr.sin_family = AF_INET;
+	sAddr.sin_port = _htons(port);
+	sAddr.sin_addr.s_addr = ipAddress;	
 
 	TcpClientSocket = socket(sAddr.sin_family, SOCK_STREAM, 0);
 	if (TcpClientSocket < 0) {
 		NRF_LOG_ERROR("SOCKET CREATE ERROR >>> %d", TcpClientSocket);
-
 	} else {
 		NRF_LOG_INFO("SOCKET CREATE >>> OK");
 		n->my_socket = TcpClientSocket;
 	}
 
 	// sockets connect  	
-        retVal = connect(TcpClientSocket, (struct sockaddr*) &sAddr, sizeof(ipAddress));
+        retVal = connect(TcpClientSocket, (struct sockaddr*) &sAddr, sizeof(struct sockaddr));
 
 	if (retVal != 0) {
 		NRF_LOG_ERROR(" SOCKET CONNECT CALL >>> FAILED");

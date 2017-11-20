@@ -87,9 +87,9 @@ static void prvMQTTEchoTask(void *pvParameters)
 	/* See if we can obtain the semaphore.  If the semaphore is not
         available wait 10 ticks to see if it becomes free. */
 	if (xSemaphoreTake(app_mqtt_Semaphore, (TickType_t)3000) == pdTRUE) {
-		NRF_LOG_INFO("NETWORK CONNECTED");		
+		NRF_LOG_INFO("SOCKET CONNECTED");		
 	} else {
-		NRF_LOG_ERROR("NETWORK CONNECT TIMEOUT");
+		NRF_LOG_ERROR("SOCKET CONNECT TIMEOUT");
                 vTaskSuspend(NULL);
 	}
 
