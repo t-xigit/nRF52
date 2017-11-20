@@ -155,7 +155,7 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 
 			NRF_LOG_INFO("%s\n\r", ctime(&unix_time));
 
-			xSemaphoreGive(app_mqtt_Semaphore);
+			xSemaphoreGive(app_wifi_Semaphore);
 
 			break;
 
@@ -249,7 +249,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 											 packetBuffer[42] << 8 |
 											 packetBuffer[43];
 
-				/* Now convert NTP time into everyday time.
+					/* Now convert NTP time into everyday time.
 				 * Unix time starts on Jan 1 1970. In seconds, that's 2208988800.
 				 * Subtract seventy years.
 				 */
@@ -274,17 +274,20 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 
 		case SOCKET_MSG_CONNECT: {
 			// Connect Event Handler.
+                        NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_CONNECT");
 
 			tstrSocketConnectMsg* pstrConnect = (tstrSocketConnectMsg*)pvMsg;
 			if (pstrConnect->s8Error == 0) {
 				uint8 acBuffer[256];
 				uint16 u16MsgSize;
 
-                                xSemaphoreGive(app_mqtt_Semaphore);
+				NRF_LOG_INFO("socket_cb: Socket Connected");
+				xSemaphoreGive(app_mqtt_Semaphore);
 
-				NRF_LOG_INFO("Socket Connected");
+			} else if(pstrConnect->s8Error == SOCK_ERR_CONN_ABORTED) {
+				NRF_LOG_ERROR("socket_cb: Socket Connection Failed >>> SOCK_ERR_CONN_ABORTED");
 			} else {
-				NRF_LOG_ERROR("Socket Connection Failed, Error: %d", pstrConnect->s8Error);
+				NRF_LOG_ERROR("socket_cb: Socket Connection Failed, Error: %d", pstrConnect->s8Error);
 			}
 
 		} break;

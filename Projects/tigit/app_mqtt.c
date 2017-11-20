@@ -34,7 +34,7 @@
 #define NRF_LOG_INFO_COLOR  APP_RTC_CONFIG_INFO_COLOR
 #define NRF_LOG_DEBUG_COLOR APP_RTC_CONFIG_DEBUG_COLOR
 
-#else //APP_RTC_CONFIG_LOG_ENABLED
+#else //APP_MQTT_CONFIG_LOG_ENABLED
 #define NRF_LOG_LEVEL       0
 #endif //APP_RTC_CONFIG_LOG_ENABLED
 #include "nrf_log.h"
@@ -73,10 +73,11 @@ static void prvMQTTEchoTask(void *pvParameters)
 	MQTTClientInit(&client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
 
         /* Wait till internet connection is established */
-	if (xSemaphoreTake(app_wifi_Semaphore, (TickType_t)5000) == pdTRUE) {
+	if (xSemaphoreTake(app_wifi_Semaphore, (TickType_t)10000) == pdTRUE) {
 		NRF_LOG_INFO("NETWORK CONNECTED");		
 	} else {
 		NRF_LOG_ERROR("NETWORK CONNECT TIMEOUT");
+                vTaskSuspend(NULL);
 	}
 
 	char* address = MQTT_BROKER_HOSTNAME;
@@ -89,6 +90,7 @@ static void prvMQTTEchoTask(void *pvParameters)
 		NRF_LOG_INFO("NETWORK CONNECTED");		
 	} else {
 		NRF_LOG_ERROR("NETWORK CONNECT TIMEOUT");
+                vTaskSuspend(NULL);
 	}
 
 #if defined(MQTT_TASK)
