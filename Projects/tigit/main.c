@@ -114,11 +114,7 @@ static void button_task_function(void* pvParameter) {
 		}
 
 		if (bsp_board_button_state_get(button_3_idx)) {
-			NRF_LOG_INFO("BUTTON 3\n\r");
-			
-			mqtt_start_task();
-			
-			
+			NRF_LOG_INFO("BUTTON 3\n\r");								
 			/* Block to debounce*/
 			vTaskDelay(BUTTON_TASK_DELAY * 2);
 		}
@@ -164,10 +160,10 @@ int main(void) {
 	APP_ERROR_CHECK(err_code);	
 
 	/* Create task for timer with priority set to 2 */
-	UNUSED_VARIABLE(xTaskCreate(timer_task_function, "TIM", configMINIMAL_STACK_SIZE + 200, NULL, 2, &timer_task_handle));
+	UNUSED_VARIABLE(xTaskCreate(timer_task_function, "TIM", configMINIMAL_STACK_SIZE * 2, NULL, 2, &timer_task_handle));
 
 	/* Create task for button handling with priority set to 2 */
-	UNUSED_VARIABLE(xTaskCreate(button_task_function, "BUT", configMINIMAL_STACK_SIZE + 200, NULL, 2, &button_task_handle));
+	UNUSED_VARIABLE(xTaskCreate(button_task_function, "BUT", configMINIMAL_STACK_SIZE * 2, NULL, 2, &button_task_handle));
 
 	led_toggle_timer_handle = xTimerCreate("LED1", TIMER_PERIOD, pdTRUE, NULL, led_toggle_timer_callback);
 	/* Start timer for LED1 blinking */

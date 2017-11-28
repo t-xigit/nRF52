@@ -99,8 +99,8 @@ tstrSystemTime* sys_time;
 
 TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
 SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in WIFI ISR */
-SemaphoreHandle_t app_wifi_Semaphore;		/**< Semaphore for WIFI client */
-SemaphoreHandle_t app_dns_Semaphore;		/**< Semaphore for dns reslove wait */
+SemaphoreHandle_t app_wifi_sys_t_Sema;		/**< Semaphore for WIFI client */
+SemaphoreHandle_t app_dns_Sema;		/**< Semaphore for dns reslove wait */
 
 
 
@@ -163,7 +163,7 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 
 			NRF_LOG_INFO("%s", ctime(&unix_time));
 
-			xSemaphoreGive(app_wifi_Semaphore);
+			xSemaphoreGive(app_wifi_sys_t_Sema);
 
 			break;
 
@@ -211,7 +211,7 @@ static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
 		resloved_ip_hex[2],
 		resloved_ip_hex[3]);
 	
-	xSemaphoreGive(app_dns_Semaphore);
+	xSemaphoreGive(app_dns_Sema);
 }
 
 /**
@@ -350,7 +350,7 @@ static void wifi_task_function(void* pvParameter) {
 	m_winc_int_semaphore = xSemaphoreCreateBinary();
 	ASSERT(NULL != m_winc_int_semaphore);
 
-	 app_dns_Semaphore = xSemaphoreCreateBinary();
+	 app_dns_Sema = xSemaphoreCreateBinary();
 	 ASSERT(NULL != m_winc_int_semaphore);
         
 	/* Initialize the BSP. */
@@ -410,9 +410,9 @@ int wifi_start_task(void) {
 	ret_code_t err_code;
 
         /* Attempt to create a semaphore. */
-	app_wifi_Semaphore = xSemaphoreCreateBinary();
+	app_wifi_sys_t_Sema = xSemaphoreCreateBinary();
 
-	if (app_wifi_Semaphore == NULL) {
+	if (app_wifi_sys_t_Sema == NULL) {
 		/* There was insufficient FreeRTOS heap available for the semaphore to
 	       be created successfully. */
 	} else {

@@ -41,7 +41,7 @@
 NRF_LOG_MODULE_REGISTER();
 
 #define MQTT_BROKER_HOSTNAME "mqtt.nello.io"	   /**< MQTT Broker Address */
-#define MQTT_BROKER_PORT      1833		   /**< MQTT Broker Port */
+#define MQTT_BROKER_PORT      1883		   /**< MQTT Broker Port */
 
 /**
  * @brief RTC instance number used for blinking
@@ -73,7 +73,7 @@ static void prvMQTTEchoTask(void *pvParameters)
 	MQTTClientInit(&client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
 
         /* Wait till internet connection is established */
-	if (xSemaphoreTake(app_wifi_Semaphore, (TickType_t)10000) == pdTRUE) {
+	if (xSemaphoreTake(app_wifi_sys_t_Sema, (TickType_t)30000) == pdTRUE) {
 		NRF_LOG_INFO("NETWORK CONNECTED");		
 	} else {
 		NRF_LOG_ERROR("NETWORK CONNECT TIMEOUT");

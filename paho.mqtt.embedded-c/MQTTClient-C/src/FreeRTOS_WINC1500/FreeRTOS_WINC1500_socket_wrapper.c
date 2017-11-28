@@ -44,7 +44,7 @@ uint32_t FreeRTOS_gethostbyname(const uint8_t* pcHostName) {
 	memcpy(dns_server_address, pcHostName, strlen(pcHostName));
 	gethostbyname((uint8_t*)dns_server_address);
 
-	if (xSemaphoreTake(app_dns_Semaphore, (TickType_t)3000) == pdTRUE) {	      
+	if (xSemaphoreTake(app_dns_Sema, (TickType_t)5000) == pdTRUE) {	      
 
 		memset(resloved_ip_hex, 0, sizeof(resloved_ip_hex));
 
