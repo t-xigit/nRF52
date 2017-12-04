@@ -50,7 +50,7 @@ NRF_LOG_MODULE_REGISTER();
 #define	BLINK_RTC 2
 
 TaskHandle_t mqtt_task_handle;		  /**< Taskhandle for MQTT client */
-SemaphoreHandle_t app_mqtt_Semaphore;	  /**< Semaphore for MQTT client */
+SemaphoreHandle_t app_socket_Sema;	  /**< Semaphore for MQTT client */
 
 void messageArrived(MessageData* data)
 {
@@ -86,7 +86,7 @@ static void prvMQTTEchoTask(void *pvParameters)
 
 	/* See if we can obtain the semaphore.  If the semaphore is not
         available wait 10 ticks to see if it becomes free. */
-	if (xSemaphoreTake(app_mqtt_Semaphore, (TickType_t)3000) == pdTRUE) {
+	if (xSemaphoreTake(app_socket_Sema, (TickType_t)3000) == pdTRUE) {
 		NRF_LOG_INFO("SOCKET CONNECTED");		
 	} else {
 		NRF_LOG_ERROR("SOCKET CONNECT TIMEOUT");
@@ -94,20 +94,29 @@ static void prvMQTTEchoTask(void *pvParameters)
 	}
 
 #if defined(MQTT_TASK)
-	if ((rc = MQTTStartTask(&client)) != pdPASS)
-		printf("Return code from start tasks is %d\n", rc);
+	if ((rc = MQTTStartTask(&client)) != pdPASS) {
+		NRF_LOG_ERROR("Return code from start tasks is %d\n", rc);
+
+	} else {
+		NRF_LOG_INFO("MQTT Task Created");
+	}
+
 #endif
 
 	connectData.MQTTVersion = 3;
 	connectData.clientID.cstring = "FreeRTOS_sample";
 
-	if ((rc = MQTTConnect(&client, &connectData)) != 0)
-		printf("Return code from MQTT connect is %d\n", rc);
-	else
-		printf("MQTT Connected\n");
+	if ((rc = MQTTConnect(&client, &connectData)) != 0) {
+		NRF_LOG_ERROR("Return code from MQTT connect is %d\n", rc);
+	} else {
+		NRF_LOG_INFO("MQTT Connected\n");
+	}
 
-	if ((rc = MQTTSubscribe(&client, "FreeRTOS/sample/#", 2, messageArrived)) != 0)
-		printf("Return code from MQTT subscribe is %d\n", rc);
+	if ((rc = MQTTSubscribe(&client, "FreeRTOS/sample/#", 2, messageArrived)) != 0) {
+		NRF_LOG_ERROR("Return code from MQTT subscribe is %d", rc);
+	} else {
+		NRF_LOG_INFO("MQTT Subscribed");
+	}
 
 	count = 10;
 	while (count--)
@@ -156,9 +165,9 @@ int mqtt_start_task(void){
     ret_code_t err_code;
 
 	/* Attempt to create a semaphore. */
-	app_mqtt_Semaphore = xSemaphoreCreateBinary();
+	app_socket_Sema = xSemaphoreCreateBinary();
 
-	if (app_mqtt_Semaphore == NULL) {
+	if (app_socket_Sema == NULL) {
 		/* There was insufficient FreeRTOS heap available for the semaphore to
 	       be created successfully. */
 	} else {
@@ -168,7 +177,7 @@ int mqtt_start_task(void){
 	}
 
 	err_code = (ret_code_t)xTaskCreate(prvMQTTEchoTask,	/* The function that implements the task. */
-		    "MQTT",					/* Just a text name for the task to aid debugging. */
+		    "AMQ",					/* Just a text name for the task to aid debugging. */
 		    configMINIMAL_STACK_SIZE + 800,		/* The stack size is defined in FreeRTOSIPConfig.h. */
 		    NULL,				/* The task parameter, not used in this case. */
 		    2,					/* The priority assigned to the task is defined in FreeRTOSConfig.h. */

@@ -290,7 +290,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				uint16 u16MsgSize;
 
 				NRF_LOG_INFO("socket_cb: Socket Connected");
-				xSemaphoreGive(app_mqtt_Semaphore);
+				xSemaphoreGive(app_socket_Sema);
 
 			} else if(pstrConnect->s8Error == SOCK_ERR_CONN_ABORTED) {
 				NRF_LOG_ERROR("socket_cb: Socket Connection Failed >>> SOCK_ERR_CONN_ABORTED");

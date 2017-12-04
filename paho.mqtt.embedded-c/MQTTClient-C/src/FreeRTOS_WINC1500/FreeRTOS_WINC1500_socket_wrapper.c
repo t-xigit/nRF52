@@ -72,6 +72,9 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 	TimeOut_t xTimeOut;
 	int sentLen = 0;
 	int16_t ret;
+	//TODO this shit doesnt work at all like this, becuse the xTimeOut is not set
+
+        NRF_LOG_DEBUG("FreeRTOS_write");
 
 	vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
 	do {
