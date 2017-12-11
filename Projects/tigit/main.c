@@ -4,13 +4,15 @@
  *
  * This file contains the source code for a sample application using FreeRTOS to do some wifi stuff.
  *	
- * @mainpage My Personal Index Page
- *	Porpose is having a start point for Projects using FreeRTOS SES nRF52 WINC1500
+ * @mainpage Start Page
+ *	Porpose is having a start point for Projects using the nRF52 SoC. With following tools:
+ *  - Segger Embedded Studio	
+ *  - FreeRTOS v9
+ *  - WINC1500
+ *  - PAHO MQTT C-Embedded Client
  *
  * @defgroup group_app Application Modules
  *  Modules used by the Application
- *  
- *
  */
 
 #include <stdbool.h>

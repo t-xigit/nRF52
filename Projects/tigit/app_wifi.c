@@ -24,11 +24,10 @@
 #include "sdk_errors.h"
 
 #include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
 #include "semphr.h"
 #include "task.h"
 #include "timers.h"
-#include "FreeRTOSConfig.h"
-
 
 #include "m2m_wifi.h"
 #include "socket.h"

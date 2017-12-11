@@ -3,13 +3,15 @@
  * @addtogroup group_rtc RTC Module
  * @ingroup group_app
  * @brief RTC APIs.
- * @details The clock HAL provides basic APIs for accessing the registers of the clock.
- * The clock driver provides APIs on a higher level.
+ * @details The RTC Module is for following porpuses:
+ * - Running a high accuracy LOW Power Clock
+ *
+ *
  *
  * @defgroup group_rtc RTC driver
  * @{
  * @ingroup group_rtc
- * @brief Driver for managing the low-frequency clock (LFCLK) and the high-frequency clock (HFCLK).
+ * @brief APIs for using the RRTC Module
  */ 
 
 #ifndef SDK_M_RTC_H__

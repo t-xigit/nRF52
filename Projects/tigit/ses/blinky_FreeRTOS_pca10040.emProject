@@ -170,7 +170,6 @@
       <folder Name="config">
         <file file_name="../config/conf_winc.h" />
         <file file_name="../config/FreeRTOSConfig.h" />
-        <file file_name="../config/gpio_nello_one.h" />
         <file file_name="../config/sdk_config.h" />
         <file file_name="../config/app_config.h" />
       </folder>
