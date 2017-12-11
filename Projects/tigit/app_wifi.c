@@ -49,13 +49,13 @@
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
-#if 1
+#if 0
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Schluesseldienst"
 #define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
 #define MAIN_WLAN_PSK "4YGp7XL8BDEbkUwM"
 #endif
-#if 0
+#if 1
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Tech_D0042715"
 #define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
@@ -149,7 +149,7 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			memset(&time_struct, 0, sizeof(struct tm));
 			sys_time = (tstrSystemTime*)pvMsg;
 
-                        NRF_LOG_INFO("%d\n\r", sys_time);
+                        NRF_LOG_INFO("%d", sys_time);
 
 			time_struct.tm_sec = (int)sys_time->u8Second;
 			time_struct.tm_min = (int)sys_time->u8Minute;
@@ -171,7 +171,7 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			NRF_LOG_INFO("wifi_cb: M2M_WIFI_RESP_CURRENT_RSSI");
 
 			sint8* rssi = (sint8*)pvMsg;
-			M2M_INFO("ch rssi %d\n", *rssi);
+			M2M_INFO("ch rssi %d", *rssi);
 			break;
 
 		default: {
@@ -367,10 +367,10 @@ static void wifi_task_function(void* pvParameter) {
 		}
 	}
 
-	ret = m2m_wifi_enable_firmware_logs(1);
+	ret = m2m_wifi_enable_firmware_logs(0);
 	if (M2M_SUCCESS != ret) {
 		NRF_LOG_ERROR("m2m_wifi_enable_firmware_logs call error!(%d)", ret);
-	}
+	}else NRF_LOG_INFO("m2m_wifi_enable_firmware_logs >>> OFF");
 
 	/* Initialize socket interface. */
 	socketInit();
@@ -424,10 +424,10 @@ int wifi_start_task(void) {
 	/* Create task for LED0 blinking with priority set to 2 */
 	err_code = (ret_code_t)xTaskCreate(wifi_task_function, "LAN", configMINIMAL_STACK_SIZE *10, NULL, 2, &wifi_task_handle);
 	if (err_code == pdPASS) {
-		NRF_LOG_INFO("RTC TASK CREATED");
+		NRF_LOG_INFO("WIFI TASK CREATED");
 		err_code = NRF_SUCCESS;
 	} else {
-		NRF_LOG_ERROR("RTC TASK	CREATE ERROR");
+		NRF_LOG_ERROR("WIFI TASK CREATE ERROR");
 		err_code = NRF_ERROR_NO_MEM;
 	}
 
