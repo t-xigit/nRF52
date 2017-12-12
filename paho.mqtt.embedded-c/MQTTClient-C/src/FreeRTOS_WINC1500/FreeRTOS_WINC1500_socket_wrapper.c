@@ -67,29 +67,30 @@ uint32_t FreeRTOS_gethostbyname(const uint8_t* pcHostName) {
 }
 
 int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
-
 	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
 	TimeOut_t xTimeOut;
 	int sentLen = 0;
 	int16_t ret;
 	//TODO this shit doesnt work at all like this, becuse the xTimeOut is not set
 
-        NRF_LOG_DEBUG("FreeRTOS_write");
+	NRF_LOG_DEBUG("FreeRTOS_write");
 
 	vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
 	do {
 		int rc = 0;
 
 		ret = send(n->my_socket, buffer, len, (uint16)0);
-                sentLen = ret;
+		sentLen = ret;
 
-		//TODO FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
-		//TODO rc = FreeRTOS_send(n->my_socket, buffer + sentLen, len - sentLen, 0);
-		if (ret == SOCK_ERR_NO_ERROR) {
-			NRF_LOG_DEBUG("SOCKET SEND OK");
-			break;
-		} else {
-			NRF_LOG_ERROR("SOCKET SEND ERROR");
+		if (xSemaphoreTake(app_wifi_soc_snd_Sema, (TickType_t)5000) == pdTRUE) {
+			//TODO FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
+			//TODO rc = FreeRTOS_send(n->my_socket, buffer + sentLen, len - sentLen, 0);
+			if (ret == SOCK_ERR_NO_ERROR) {
+				NRF_LOG_DEBUG("SOCKET SEND OK");
+				break;
+			} else {
+				NRF_LOG_ERROR("SOCKET SEND ERROR");
+			}
 		}
 
 	} while (xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) == pdFALSE);

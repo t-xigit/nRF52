@@ -27,6 +27,7 @@ extern "C" {
 
 extern SemaphoreHandle_t app_wifi_sys_t_Sema;
 extern SemaphoreHandle_t app_dns_Sema;
+extern SemaphoreHandle_t app_wifi_soc_snd_Sema;
 extern struct sockaddr_in resolved_addr;
 
 #define wifi_req_curr_rssi()   m2m_wifi_req_curr_rssi()

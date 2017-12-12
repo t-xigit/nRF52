@@ -49,13 +49,13 @@
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
-#if 0
-/** Wi-Fi Settings */
-#define MAIN_WLAN_SSID "Schluesseldienst"
-#define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
-#define MAIN_WLAN_PSK "4YGp7XL8BDEbkUwM"
-#endif
 #if 1
+/** Wi-Fi Settings */
+#define MAIN_WLAN_SSID "Schluessel"
+#define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
+#define MAIN_WLAN_PSK "verygoodpw123"
+#endif
+#if 0
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Tech_D0042715"
 #define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
@@ -99,6 +99,7 @@ tstrSystemTime* sys_time;
 TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
 SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in WIFI ISR */
 SemaphoreHandle_t app_wifi_sys_t_Sema;		/**< Semaphore for WIFI client */
+SemaphoreHandle_t app_wifi_soc_snd_Sema;	/**< Semaphore for Socket send */
 SemaphoreHandle_t app_dns_Sema;		/**< Semaphore for dns reslove wait */
 
 
@@ -223,6 +224,7 @@ static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
 static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 	/* Check for socket event on socket. */
 	int16_t ret;
+        sint16 s16Rcvd = 0;
 
 	switch (u8Msg) {
 		case SOCKET_MSG_BIND: {
@@ -236,6 +238,15 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			} else {
 				NRF_LOG_INFO("socket_cb: bind error!");
 			}
+
+			break;
+		}
+
+	       case SOCKET_MSG_SEND: {
+			sint16 s16Rcvd = 0;
+			s16Rcvd = *(sint16*) pvMsg;
+                        NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_SEND: %d",s16Rcvd);		
+			xSemaphoreGive(app_wifi_soc_snd_Sema);                                
 
 			break;
 		}
@@ -405,10 +416,9 @@ static void wifi_task_function(void* pvParameter) {
 }
 
 int wifi_start_task(void) {
-	
 	ret_code_t err_code;
 
-        /* Attempt to create a semaphore. */
+	/* Attempt to create a semaphore. */
 	app_wifi_sys_t_Sema = xSemaphoreCreateBinary();
 
 	if (app_wifi_sys_t_Sema == NULL) {
@@ -420,9 +430,19 @@ int wifi_start_task(void) {
 		  will fail until the semaphore has first been given. */
 	}
 
+	app_wifi_soc_snd_Sema = xSemaphoreCreateBinary();
+
+	if (app_wifi_soc_snd_Sema == NULL) {
+		/* There was insufficient FreeRTOS heap available for the semaphore to
+	       be created successfully. */
+	} else {
+		/* The semaphore can now be used. Its handle is stored in the
+		  xSemahore variable.  Calling xSemaphoreTake() on the semaphore here
+		  will fail until the semaphore has first been given. */
+	}
 
 	/* Create task for LED0 blinking with priority set to 2 */
-	err_code = (ret_code_t)xTaskCreate(wifi_task_function, "LAN", configMINIMAL_STACK_SIZE *10, NULL, 2, &wifi_task_handle);
+	err_code = (ret_code_t)xTaskCreate(wifi_task_function, "LAN", configMINIMAL_STACK_SIZE * 10, NULL, 2, &wifi_task_handle);
 	if (err_code == pdPASS) {
 		NRF_LOG_INFO("WIFI TASK CREATED");
 		err_code = NRF_SUCCESS;
