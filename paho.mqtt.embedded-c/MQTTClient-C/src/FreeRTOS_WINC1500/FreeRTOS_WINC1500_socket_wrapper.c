@@ -71,7 +71,7 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 	TimeOut_t xTimeOut;
 	int sentLen = 0;
 	int16_t ret;
-	//TODO this shit doesnt work at all like this, becuse the xTimeOut is not set
+	sint16 s16Rcvd = 0;
 
 	NRF_LOG_DEBUG("FreeRTOS_write");
 
@@ -82,18 +82,16 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 		ret = send(n->my_socket, buffer, len, (uint16)0);
 		sentLen = ret;
 
-		if (xSemaphoreTake(app_wifi_soc_snd_Sema, (TickType_t)5000) == pdTRUE) {
-			//TODO FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
-			//TODO rc = FreeRTOS_send(n->my_socket, buffer + sentLen, len - sentLen, 0);
-			if (ret == SOCK_ERR_NO_ERROR) {
-				NRF_LOG_DEBUG("SOCKET SEND OK");
-				break;
-			} else {
-				NRF_LOG_ERROR("SOCKET SEND ERROR");
-			}
+		if (xQueueReceive(socket_snd_Q, &s16Rcvd, xTicksToWait) != pdTRUE) {
+			NRF_LOG_ERROR("SOCKET SEND ERROR");
+
+		} else {
+			NRF_LOG_DEBUG("SOCKET SEND OK");
 		}
 
 	} while (xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) == pdFALSE);
+
+	sentLen = (int)s16Rcvd;
 
 	return sentLen;
 }

@@ -24,11 +24,13 @@ extern "C" {
 #include "sdk_errors.h"
 #include "m2m_wifi.h"
 
-
+extern struct sockaddr_in resolved_addr;
+//Semaphores
 extern SemaphoreHandle_t app_wifi_sys_t_Sema;
 extern SemaphoreHandle_t app_dns_Sema;
 extern SemaphoreHandle_t app_wifi_soc_snd_Sema;
-extern struct sockaddr_in resolved_addr;
+//Queues
+extern QueueHandle_t socket_snd_Q;
 
 #define wifi_req_curr_rssi()   m2m_wifi_req_curr_rssi()
 

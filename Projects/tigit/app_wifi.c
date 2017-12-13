@@ -28,6 +28,7 @@
 #include "semphr.h"
 #include "task.h"
 #include "timers.h"
+#include "queue.h"
 
 #include "m2m_wifi.h"
 #include "socket.h"
@@ -100,9 +101,9 @@ TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. 
 SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in WIFI ISR */
 SemaphoreHandle_t app_wifi_sys_t_Sema;		/**< Semaphore for WIFI client */
 SemaphoreHandle_t app_wifi_soc_snd_Sema;	/**< Semaphore for Socket send */
-SemaphoreHandle_t app_dns_Sema;		/**< Semaphore for dns reslove wait */
+SemaphoreHandle_t app_dns_Sema;			/**< Semaphore for dns reslove wait */
 
-
+QueueHandle_t socket_snd_Q;			/**< Queue for returning the error code from the Socket CB */
 
 /**
  * \brief Callback to get the Wi-Fi status update.
@@ -224,7 +225,7 @@ static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
 static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 	/* Check for socket event on socket. */
 	int16_t ret;
-        sint16 s16Rcvd = 0;
+	sint16 s16Rcvd = 0;
 
 	switch (u8Msg) {
 		case SOCKET_MSG_BIND: {
@@ -242,11 +243,14 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			break;
 		}
 
-	       case SOCKET_MSG_SEND: {
+		case SOCKET_MSG_SEND: {
 			sint16 s16Rcvd = 0;
-			s16Rcvd = *(sint16*) pvMsg;
-                        NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_SEND: %d",s16Rcvd);		
-			xSemaphoreGive(app_wifi_soc_snd_Sema);                                
+			s16Rcvd = *(sint16*)pvMsg;
+			NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_SEND: %d", s16Rcvd);
+			if (xQueueSend(socket_snd_Q, (void *) &s16Rcvd, (TickType_t)10) != pdPASS) {
+				NRF_LOG_ERROR("xQueueSend >>> ERROR >>> socket_snd_Q");
+			}
+			xSemaphoreGive(app_wifi_soc_snd_Sema);
 
 			break;
 		}
@@ -292,9 +296,9 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 
 		case SOCKET_MSG_CONNECT: {
 			// Connect Event Handler.
-                        NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_CONNECT");
+			NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_CONNECT");
 
-			tstrSocketConnectMsg* pstrConnect = (tstrSocketConnectMsg*)pvMsg;                        
+			tstrSocketConnectMsg* pstrConnect = (tstrSocketConnectMsg*)pvMsg;
 			if (pstrConnect->s8Error == 0) {
 				uint8 acBuffer[256];
 				uint16 u16MsgSize;
@@ -302,7 +306,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				NRF_LOG_INFO("socket_cb: Socket Connected");
 				xSemaphoreGive(app_socket_Sema);
 
-			} else if(pstrConnect->s8Error == SOCK_ERR_CONN_ABORTED) {
+			} else if (pstrConnect->s8Error == SOCK_ERR_CONN_ABORTED) {
 				NRF_LOG_ERROR("socket_cb: Socket Connection Failed >>> SOCK_ERR_CONN_ABORTED");
 			} else {
 				NRF_LOG_ERROR("socket_cb: Socket Connection Failed, Error: %d", pstrConnect->s8Error);
@@ -439,6 +443,12 @@ int wifi_start_task(void) {
 		/* The semaphore can now be used. Its handle is stored in the
 		  xSemahore variable.  Calling xSemaphoreTake() on the semaphore here
 		  will fail until the semaphore has first been given. */
+	}
+
+	socket_snd_Q = xQueueCreate(1, sizeof(sint16));
+
+	if (socket_snd_Q == NULL) {
+		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_snd_Q");
 	}
 
 	/* Create task for LED0 blinking with priority set to 2 */
