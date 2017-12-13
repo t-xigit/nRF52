@@ -100,7 +100,6 @@ tstrSystemTime* sys_time;
 TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
 SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in WIFI ISR */
 SemaphoreHandle_t app_wifi_sys_t_Sema;		/**< Semaphore for WIFI client */
-SemaphoreHandle_t app_wifi_soc_snd_Sema;	/**< Semaphore for Socket send */
 SemaphoreHandle_t app_dns_Sema;			/**< Semaphore for dns reslove wait */
 
 QueueHandle_t socket_snd_Q;			/**< Queue for returning the error code from the Socket CB */
@@ -250,7 +249,6 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			if (xQueueSend(socket_snd_Q, (void *) &s16Rcvd, (TickType_t)10) != pdPASS) {
 				NRF_LOG_ERROR("xQueueSend >>> ERROR >>> socket_snd_Q");
 			}
-			xSemaphoreGive(app_wifi_soc_snd_Sema);
 
 			break;
 		}
@@ -432,18 +430,7 @@ int wifi_start_task(void) {
 		/* The semaphore can now be used. Its handle is stored in the
 		  xSemahore variable.  Calling xSemaphoreTake() on the semaphore here
 		  will fail until the semaphore has first been given. */
-	}
-
-	app_wifi_soc_snd_Sema = xSemaphoreCreateBinary();
-
-	if (app_wifi_soc_snd_Sema == NULL) {
-		/* There was insufficient FreeRTOS heap available for the semaphore to
-	       be created successfully. */
-	} else {
-		/* The semaphore can now be used. Its handle is stored in the
-		  xSemahore variable.  Calling xSemaphoreTake() on the semaphore here
-		  will fail until the semaphore has first been given. */
-	}
+	}	
 
 	socket_snd_Q = xQueueCreate(1, sizeof(sint16));
 

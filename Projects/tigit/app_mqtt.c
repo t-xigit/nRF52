@@ -107,9 +107,9 @@ static void prvMQTTEchoTask(void *pvParameters)
 	connectData.clientID.cstring = "FreeRTOS_sample";
 
 	if ((rc = MQTTConnect(&client, &connectData)) != 0) {
-		NRF_LOG_ERROR("Return code from MQTT connect is %d\n", rc);
+		NRF_LOG_ERROR("Return code from MQTT connect is %d", rc);
 	} else {
-		NRF_LOG_INFO("MQTT Connected\n");
+		NRF_LOG_INFO("MQTT Connected");
 	}
 
 	if ((rc = MQTTSubscribe(&client, "FreeRTOS/sample/#", 2, messageArrived)) != 0) {

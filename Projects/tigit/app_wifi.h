@@ -28,7 +28,6 @@ extern struct sockaddr_in resolved_addr;
 //Semaphores
 extern SemaphoreHandle_t app_wifi_sys_t_Sema;
 extern SemaphoreHandle_t app_dns_Sema;
-extern SemaphoreHandle_t app_wifi_soc_snd_Sema;
 //Queues
 extern QueueHandle_t socket_snd_Q;
 
