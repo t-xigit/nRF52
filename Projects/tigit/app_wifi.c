@@ -97,12 +97,16 @@ tstrWifiInitParam param;
 
 tstrSystemTime* sys_time;
 
+#define rxBufferSize  256
+uint8_t rxBuffer[rxBufferSize];
+
 TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
 SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in WIFI ISR */
 SemaphoreHandle_t app_wifi_sys_t_Sema;		/**< Semaphore for WIFI client */
 SemaphoreHandle_t app_dns_Sema;			/**< Semaphore for dns reslove wait */
 
 QueueHandle_t socket_snd_Q;			/**< Queue for returning the error code from the Socket CB */
+QueueHandle_t socket_rx_Q;			/**< Queue for RX Data from the Socket CB */
 
 /**
  * \brief Callback to get the Wi-Fi status update.
@@ -246,7 +250,9 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			sint16 s16Rcvd = 0;
 			s16Rcvd = *(sint16*)pvMsg;
 			NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_SEND: %d", s16Rcvd);
-			if (xQueueSend(socket_snd_Q, (void *) &s16Rcvd, (TickType_t)10) != pdPASS) {
+			//calling receive because page 31 in software design guide
+			ret = recv(0, rxBuffer, rxBufferSize, 0);
+			if (xQueueSend(socket_snd_Q, (void*)&s16Rcvd, (TickType_t)10) != pdPASS) {
 				NRF_LOG_ERROR("xQueueSend >>> ERROR >>> socket_snd_Q");
 			}
 
@@ -290,6 +296,45 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 					}
 				}
 			}
+		} break;
+
+		case SOCKET_MSG_RECV: {
+			NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_RECV");
+			tstrSocketRecvMsg* pstrRecv = (tstrSocketRecvMsg*)pvMsg;
+			pstrRecv->pu8Buffer = rxBuffer;
+
+			if (sock == 0) {
+				// This means an error occurred
+				if (pstrRecv->s16BufferSize <= 0) {
+					NRF_LOG_DEBUG("SOCK_ERR >>> CODE: %d >>> ", pstrRecv->s16BufferSize);
+					if (pstrRecv->s16BufferSize == SOCK_ERR_CONN_ABORTED) {
+						NRF_LOG_ERROR("SOCK_ERR_CONN_ABORTED\n\r");
+					} else if (pstrRecv->s16BufferSize == SOCK_ERR_NO_ERROR) {
+						NRF_LOG_ERROR("SOCKET CONNECTION IS TERMINATED\n\r");
+					}
+					while (1)
+						;  // wait for watchdog
+				}
+				// This means there are valid data to be pulled
+				else if (pstrRecv->s16BufferSize > 0) {
+					NRF_LOG_DEBUG("MSG_OK\n\r");
+					//UNUSED_VARIABLE(transport_fn[m_app_mqtt_id.transport_type].read(&m_app_mqtt_id, pstrRecv->pu8Buffer, pstrRecv->s16BufferSize));
+
+					//calling receive because page 31 in software design guide
+					ret = (sint16)recv(0, rxBuffer, rxBufferSize, 0);
+
+					NRF_LOG_DEBUG("[MQTT:SOCK] EVENT >>> SOCK_RECV >>> ");
+
+					if (ret == SOCK_ERR_NO_ERROR) {
+						NRF_LOG_DEBUG("SOCK_RECV_OK\n\r");
+					} else if (ret == SOCK_ERR_INVALID_ARG) {
+						NRF_LOG_ERROR("SOCK_ERR_INVALID_ARG\n\r");
+					} else if (ret == SOCK_ERR_BUFFER_FULL) {
+						NRF_LOG_ERROR("SOCK_ERR_BUFFER_FULL\n\r");
+					}
+				}
+			}
+
 		} break;
 
 		case SOCKET_MSG_CONNECT: {
@@ -436,6 +481,12 @@ int wifi_start_task(void) {
 
 	if (socket_snd_Q == NULL) {
 		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_snd_Q");
+	}
+
+        socket_rx_Q = xQueueCreate(1, sizeof(rxBuffer));
+
+        if (socket_rx_Q == NULL) {
+		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_rx_Q");
 	}
 
 	/* Create task for LED0 blinking with priority set to 2 */
