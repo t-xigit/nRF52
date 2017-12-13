@@ -86,12 +86,12 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 			NRF_LOG_ERROR("SOCKET SEND ERROR");
 
 		} else {
+			sentLen += (int)s16Rcvd;
 			NRF_LOG_DEBUG("SOCKET SEND OK");
+			break;
 		}
 
 	} while (xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) == pdFALSE);
-
-	sentLen = (int)s16Rcvd;
 
 	return sentLen;
 }
