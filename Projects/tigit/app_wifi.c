@@ -17,7 +17,6 @@
 #include <stdint.h>
 #include <time.h>
 
-
 #include "app_error.h"
 #include "bsp.h"
 #include "nordic_common.h"
@@ -25,28 +24,28 @@
 
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
+#include "queue.h"
 #include "semphr.h"
 #include "task.h"
 #include "timers.h"
-#include "queue.h"
 
 #include "m2m_wifi.h"
 #include "socket.h"
 
-#include "app_rtc.h"
-#include "app_mqtt.h"
 #include "app_config.h"
+#include "app_mqtt.h"
+#include "app_rtc.h"
 
 #define NRF_LOG_MODULE_NAME app_wifi
 
 #if APP_WIFI_CONFIG_LOG_ENABLED
-#define NRF_LOG_LEVEL       APP_WIFI_CONFIG_LOG_LEVEL
-#define NRF_LOG_INFO_COLOR  APP_WIFI_CONFIG_INFO_COLOR
+#define NRF_LOG_LEVEL APP_WIFI_CONFIG_LOG_LEVEL
+#define NRF_LOG_INFO_COLOR APP_WIFI_CONFIG_INFO_COLOR
 #define NRF_LOG_DEBUG_COLOR APP_WIFI_CONFIG_DEBUG_COLOR
 
-#else //APP_WIFI_CONFIG_LOG_ENABLED
-#define NRF_LOG_LEVEL       0
-#endif //APP_WIFI_CONFIG_LOG_ENABLED
+#else  //APP_WIFI_CONFIG_LOG_ENABLED
+#define NRF_LOG_LEVEL 0
+#endif  //APP_WIFI_CONFIG_LOG_ENABLED
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
@@ -68,7 +67,6 @@ NRF_LOG_MODULE_REGISTER();
 
 /** Using NTP server information */
 
-
 #define MAIN_WORLDWIDE_NTP_POOL_HOSTNAME "pool.ntp.org"
 #define MAIN_ASIA_NTP_POOL_HOSTNAME "asia.pool.ntp.org"
 #define MAIN_EUROPE_NTP_POOL_HOSTNAME "europe.pool.ntp.org"
@@ -87,9 +85,9 @@ static bool gbConnectedWifi = false;
 /** UDP socket handlers. */
 static SOCKET udp_socket = -1;
 
-static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE];	/** Receive buffer definition. */
+static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE]; /** Receive buffer definition. */
 
-static uint8 gu8SleepStatus;				/**< Wi-Fi Sleep status. */
+static uint8 gu8SleepStatus; /**< Wi-Fi Sleep status. */
 
 struct sockaddr_in resolved_addr;
 
@@ -97,16 +95,16 @@ tstrWifiInitParam param;
 
 tstrSystemTime* sys_time;
 
-#define rxBufferSize  256
+#define rxBufferSize 256
 uint8_t rxBuffer[rxBufferSize];
 
 TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
-SemaphoreHandle_t m_winc_int_semaphore;		/**< Semaphore set in WIFI ISR */
-SemaphoreHandle_t app_wifi_sys_t_Sema;		/**< Semaphore for WIFI client */
+SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in WIFI ISR */
+SemaphoreHandle_t app_wifi_sys_t_Sema;  /**< Semaphore for WIFI client */
 SemaphoreHandle_t app_dns_Sema;			/**< Semaphore for dns reslove wait */
 
-QueueHandle_t socket_snd_Q;			/**< Queue for returning the error code from the Socket CB */
-QueueHandle_t socket_rx_Q;			/**< Queue for RX Data from the Socket CB */
+QueueHandle_t socket_snd_Q; /**< Queue for returning the error code from the Socket CB */
+QueueHandle_t socket_rx_Q;  /**< Queue for RX Data from the Socket CB */
 
 /**
  * \brief Callback to get the Wi-Fi status update.
@@ -115,7 +113,6 @@ QueueHandle_t socket_rx_Q;			/**< Queue for RX Data from the Socket CB */
  * \param[in] pvMsg A pointer to a buffer containing the notification parameters.
  */
 static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
-
 	switch (u8MsgType) {
 		case M2M_WIFI_RESP_CON_STATE_CHANGED: {
 			tstrM2mWifiStateChanged* pstrWifiState = (tstrM2mWifiStateChanged*)pvMsg;
@@ -133,13 +130,12 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 		}
 
 		case M2M_WIFI_REQ_DHCP_CONF: {
-
 			uint8_t* pu8IPAddress = (uint8_t*)pvMsg;
 			NRF_LOG_INFO("wifi_cb: M2M_WIFI_REQ_DHCP_CONF: IP is %u.%u.%u.%u",
 				pu8IPAddress[0], pu8IPAddress[1], pu8IPAddress[2], pu8IPAddress[3]);
 			gbConnectedWifi = true;
 
-                        m2m_wifi_get_sytem_time();
+			m2m_wifi_get_sytem_time();
 			//memcpy(dns_server_address, (uint8_t*)MQTT_BROKER_HOSTNAME, strlen(MQTT_BROKER_HOSTNAME));
 			/* Obtain the IP Address by network name */
 			//gethostbyname((uint8_t*)dns_server_address);
@@ -154,7 +150,7 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			memset(&time_struct, 0, sizeof(struct tm));
 			sys_time = (tstrSystemTime*)pvMsg;
 
-                        NRF_LOG_INFO("%d", sys_time);
+			NRF_LOG_INFO("%d", sys_time);
 
 			time_struct.tm_sec = (int)sys_time->u8Second;
 			time_struct.tm_min = (int)sys_time->u8Minute;
@@ -180,7 +176,7 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 			break;
 
 		default: {
-                NRF_LOG_ERROR("<<<<<<< wifi_cb >>>>>>");
+			NRF_LOG_ERROR("<<<<<<< wifi_cb >>>>>>");
 			break;
 		}
 	}
@@ -193,7 +189,6 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
  * \param[in] u32ServerIP Server IP.
  */
 static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
-	
 	int16_t ret;
 	char resloved_ip_hex[4];
 	uint32_t temp_u32ServerIP = u32ServerIP;
@@ -214,7 +209,7 @@ static void resolve_cb(uint8_t* pu8DomainName, uint32_t u32ServerIP) {
 		resloved_ip_hex[1],
 		resloved_ip_hex[2],
 		resloved_ip_hex[3]);
-	
+
 	xSemaphoreGive(app_dns_Sema);
 }
 
@@ -252,6 +247,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_SEND: %d", s16Rcvd);
 			//calling receive because page 31 in software design guide
 			ret = recv(0, rxBuffer, rxBufferSize, 0);
+			//calling receive because page 31 in software design guide
 			if (xQueueSend(socket_snd_Q, (void*)&s16Rcvd, (TickType_t)10) != pdPASS) {
 				NRF_LOG_ERROR("xQueueSend >>> ERROR >>> socket_snd_Q");
 			}
@@ -312,12 +308,14 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 					} else if (pstrRecv->s16BufferSize == SOCK_ERR_NO_ERROR) {
 						NRF_LOG_ERROR("SOCKET CONNECTION IS TERMINATED\n\r");
 					}
-					while (1)
-						;  // wait for watchdog
 				}
 				// This means there are valid data to be pulled
 				else if (pstrRecv->s16BufferSize > 0) {
-					NRF_LOG_DEBUG("MSG_OK\n\r");
+					NRF_LOG_DEBUG("SOCKET_MSG_RECV >>> MSG_OK");
+					if (xQueueSend(socket_rx_Q, (void*) pstrRecv->pu8Buffer, (TickType_t)10) != pdPASS) {
+						NRF_LOG_ERROR("xQueueSend >>> ERROR >>> socket_snd_Q");
+					}
+
 					//UNUSED_VARIABLE(transport_fn[m_app_mqtt_id.transport_type].read(&m_app_mqtt_id, pstrRecv->pu8Buffer, pstrRecv->s16BufferSize));
 
 					//calling receive because page 31 in software design guide
@@ -366,26 +364,28 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
  *
  */
 void wifi_turn_off(void) {
-   
-  sint8 ret = M2M_SUCCESS;
-  NRF_LOG_INFO("wifi_turn_off()");
+	sint8 ret = M2M_SUCCESS;
+	NRF_LOG_INFO("wifi_turn_off()");
 
-  ret = m2m_wifi_disconnect();
-  if(ret == M2M_SUCCESS){
-    NRF_LOG_INFO("m2m_wifi_disconnect >>> OK");
-  }else NRF_LOG_ERROR("m2m_wifi_disconnect >>> ERROR");
-  
-  ret = m2m_wifi_deinit(NULL);
-  if(ret == M2M_SUCCESS){
-    NRF_LOG_INFO("m2m_wifi_deinit >>> OK");
-  }else NRF_LOG_ERROR("m2m_wifi_deinit >>> ERROR");
-  
-  ret = nm_bsp_deinit();
-  if(ret == M2M_SUCCESS){
-    NRF_LOG_INFO("nm_bsp_deinit >>> OK");
-  }else NRF_LOG_ERROR("nm_bsp_deinit >>> ERROR");
-  
-  nm_bsp_interrupt_ctrl(false);
+	ret = m2m_wifi_disconnect();
+	if (ret == M2M_SUCCESS) {
+		NRF_LOG_INFO("m2m_wifi_disconnect >>> OK");
+	} else
+		NRF_LOG_ERROR("m2m_wifi_disconnect >>> ERROR");
+
+	ret = m2m_wifi_deinit(NULL);
+	if (ret == M2M_SUCCESS) {
+		NRF_LOG_INFO("m2m_wifi_deinit >>> OK");
+	} else
+		NRF_LOG_ERROR("m2m_wifi_deinit >>> ERROR");
+
+	ret = nm_bsp_deinit();
+	if (ret == M2M_SUCCESS) {
+		NRF_LOG_INFO("nm_bsp_deinit >>> OK");
+	} else
+		NRF_LOG_ERROR("nm_bsp_deinit >>> ERROR");
+
+	nm_bsp_interrupt_ctrl(false);
 
 #if 0
   //@BUG doesn't work, both calls cause crashes
@@ -407,9 +407,9 @@ static void wifi_task_function(void* pvParameter) {
 	m_winc_int_semaphore = xSemaphoreCreateBinary();
 	ASSERT(NULL != m_winc_int_semaphore);
 
-	 app_dns_Sema = xSemaphoreCreateBinary();
-	 ASSERT(NULL != m_winc_int_semaphore);
-        
+	app_dns_Sema = xSemaphoreCreateBinary();
+	ASSERT(NULL != m_winc_int_semaphore);
+
 	/* Initialize the BSP. */
 	nm_bsp_init();
 
@@ -428,7 +428,8 @@ static void wifi_task_function(void* pvParameter) {
 	ret = m2m_wifi_enable_firmware_logs(0);
 	if (M2M_SUCCESS != ret) {
 		NRF_LOG_ERROR("m2m_wifi_enable_firmware_logs call error!(%d)", ret);
-	}else NRF_LOG_INFO("m2m_wifi_enable_firmware_logs >>> OFF");
+	} else
+		NRF_LOG_INFO("m2m_wifi_enable_firmware_logs >>> OFF");
 
 	/* Initialize socket interface. */
 	socketInit();
@@ -475,7 +476,7 @@ int wifi_start_task(void) {
 		/* The semaphore can now be used. Its handle is stored in the
 		  xSemahore variable.  Calling xSemaphoreTake() on the semaphore here
 		  will fail until the semaphore has first been given. */
-	}	
+	}
 
 	socket_snd_Q = xQueueCreate(1, sizeof(sint16));
 
@@ -483,9 +484,9 @@ int wifi_start_task(void) {
 		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_snd_Q");
 	}
 
-        socket_rx_Q = xQueueCreate(1, sizeof(rxBuffer));
+	socket_rx_Q = xQueueCreate(1, sizeof(rxBuffer));
 
-        if (socket_rx_Q == NULL) {
+	if (socket_rx_Q == NULL) {
 		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_rx_Q");
 	}
 
