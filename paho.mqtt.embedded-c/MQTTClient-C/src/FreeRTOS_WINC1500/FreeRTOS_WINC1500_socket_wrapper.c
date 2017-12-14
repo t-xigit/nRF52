@@ -25,12 +25,10 @@
 /** Host name placeholder. */
 char dns_server_address[HOSTNAME_MAX_SIZE];
 
-
 void FreeRTOS_disconnect(Network* n) {
-
 	int16_t ret;
 
-	ret = close(n -> my_socket);
+	ret = close(n->my_socket);
 	if (ret == SOCK_ERR_NO_ERROR) {
 		NRF_LOG_DEBUG("SOCKET CLOSED");
 	} else
@@ -38,14 +36,12 @@ void FreeRTOS_disconnect(Network* n) {
 }
 
 uint32_t FreeRTOS_gethostbyname(const uint8_t* pcHostName) {
-
 	char resloved_ip_hex[4];
 
 	memcpy(dns_server_address, pcHostName, strlen(pcHostName));
 	gethostbyname((uint8_t*)dns_server_address);
 
-	if (xSemaphoreTake(app_dns_Sema, (TickType_t)5000) == pdTRUE) {	      
-
+	if (xSemaphoreTake(app_dns_Sema, (TickType_t)5000) == pdTRUE) {
 		memset(resloved_ip_hex, 0, sizeof(resloved_ip_hex));
 
 		resloved_ip_hex[3] = (uint8_t)((resolved_addr.sin_addr.s_addr >> 24) & 0xff);
@@ -101,9 +97,9 @@ int NetworkConnect(Network* n, char* addr, int port) {
 	struct sockaddr_in sAddr;
 	int retVal = -1;
 	SOCKET TcpClientSocket = -1;
-	uint32_t ipAddress;   
-	 
-        memset(&sAddr, 0, sizeof(struct sockaddr));
+	uint32_t ipAddress;
+
+	memset(&sAddr, 0, sizeof(struct sockaddr));
 
 	if ((ipAddress = FreeRTOS_gethostbyname(addr)) == 0)
 		goto exit;
@@ -113,7 +109,7 @@ int NetworkConnect(Network* n, char* addr, int port) {
 
 	sAddr.sin_family = AF_INET;
 	sAddr.sin_port = _htons(port);
-	sAddr.sin_addr.s_addr = ipAddress;	
+	sAddr.sin_addr.s_addr = ipAddress;
 
 	TcpClientSocket = socket(sAddr.sin_family, SOCK_STREAM, 0);
 	if (TcpClientSocket < 0) {
@@ -123,8 +119,8 @@ int NetworkConnect(Network* n, char* addr, int port) {
 		n->my_socket = TcpClientSocket;
 	}
 
-	// sockets connect  	
-        retVal = connect(TcpClientSocket, (struct sockaddr*) &sAddr, sizeof(struct sockaddr));
+	// sockets connect
+	retVal = connect(TcpClientSocket, (struct sockaddr*)&sAddr, sizeof(struct sockaddr));
 
 	if (retVal != 0) {
 		NRF_LOG_ERROR(" SOCKET CONNECT CALL >>> FAILED");
@@ -137,23 +133,25 @@ exit:
 	return retVal;
 }
 
-int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
-{
-	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS;	   /* convert milliseconds to ticks */
+int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms) {
+	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
 	TimeOut_t xTimeOut;
+	tstrSocketRecvMsg pstrRecv;
 	int recvLen = 0;
 
-	vTaskSetTimeOutState(&xTimeOut);				   /* Record the time at which this function was entered. */
-	do
-	{
+	if (xQueueReceive(socket_rx_Q, &pstrRecv, xTicksToWait) != pdTRUE) {
+		NRF_LOG_ERROR("SOCKET RX Q ERROR");
+	}
+
+	vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
+	do {
 		int rc = 0;
 
-		//TODO FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
-		//TODO rc = FreeRTOS_recv(n->my_socket, buffer + recvLen, len - recvLen, 0);
+		//FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
+		//rc = FreeRTOS_recv(n->my_socket, buffer + recvLen, len - recvLen, 0);
 		if (rc > 0)
 			recvLen += rc;
-		else if (rc < 0)
-		{
+		else if (rc < 0) {
 			recvLen = rc;
 			break;
 		}
