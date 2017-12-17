@@ -20,6 +20,8 @@
 #include "FreeRTOS/MQTTFreeRTOS.h"
 #include "socket/include/socket.h"
 
+void FreeRTOS_recv_copy(tstrSocketRecvMsg* RecvData);
+
 //int FreeRTOS_read(Network*, unsigned char*, int, int);
 //int FreeRTOS_write(Network*, unsigned char*, int, int);
 //void FreeRTOS_disconnect(Network*);

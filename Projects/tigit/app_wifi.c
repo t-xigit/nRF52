@@ -32,9 +32,12 @@
 #include "m2m_wifi.h"
 #include "socket.h"
 
+#include "FreeRTOS_WINC1500_socket_wrapper.h"
+
 #include "app_config.h"
 #include "app_mqtt.h"
 #include "app_rtc.h"
+#include "app_wifi.h"
 
 #define NRF_LOG_MODULE_NAME app_wifi
 
@@ -95,13 +98,19 @@ tstrWifiInitParam param;
 
 tstrSystemTime* sys_time;
 
-#define rxBufferSize 256
 uint8_t rxBuffer[rxBufferSize];
+//tstrSocketRecvMsg* pstrRecv;
+tstrSocketRecvMsg RecvData;
+tstrSocketRecvMsg* RecvDataptr;
+
+size_t RecvDataSize = sizeof(tstrSocketRecvMsg);
 
 TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
 SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in WIFI ISR */
 SemaphoreHandle_t app_wifi_sys_t_Sema;  /**< Semaphore for WIFI client */
 SemaphoreHandle_t app_dns_Sema;			/**< Semaphore for dns reslove wait */
+
+SemaphoreHandle_t socket_rx_sema;
 
 QueueHandle_t socket_snd_Q; /**< Queue for returning the error code from the Socket CB */
 QueueHandle_t socket_rx_Q;  /**< Queue for RX Data from the Socket CB */
@@ -299,7 +308,9 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			tstrSocketRecvMsg* pstrRecv = (tstrSocketRecvMsg*)pvMsg;
 			pstrRecv->pu8Buffer = rxBuffer;
 
-			if (sock == 0) {
+			memcpy(&RecvData, pstrRecv, sizeof(tstrSocketRecvMsg));
+
+			if (sock == mqtt_client.ipstack->my_socket) {
 				// This means an error occurred
 				if (pstrRecv->s16BufferSize <= 0) {
 					NRF_LOG_DEBUG("SOCK_ERR >>> CODE: %d >>> ", pstrRecv->s16BufferSize);
@@ -311,24 +322,13 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				}
 				// This means there are valid data to be pulled
 				else if (pstrRecv->s16BufferSize > 0) {
-					NRF_LOG_DEBUG("SOCKET_MSG_RECV >>> MSG_OK");
-					if (xQueueSend(socket_rx_Q, (void*) pstrRecv->pu8Buffer, (TickType_t)10) != pdPASS) {
-						NRF_LOG_ERROR("xQueueSend >>> ERROR >>> socket_snd_Q");
-					}
+					NRF_LOG_DEBUG("SOCKET_MSG_RECV >>> MSG_OK : %d", pstrRecv->s16BufferSize);
 
-					//UNUSED_VARIABLE(transport_fn[m_app_mqtt_id.transport_type].read(&m_app_mqtt_id, pstrRecv->pu8Buffer, pstrRecv->s16BufferSize));
+					NRF_LOG_DEBUG("SOCKET_MSG_RECV >>> FreeRTOS_recv_copy");
+					FreeRTOS_recv_copy(pstrRecv);
 
-					//calling receive because page 31 in software design guide
-					ret = (sint16)recv(0, rxBuffer, rxBufferSize, 0);
-
-					NRF_LOG_DEBUG("[MQTT:SOCK] EVENT >>> SOCK_RECV >>> ");
-
-					if (ret == SOCK_ERR_NO_ERROR) {
-						NRF_LOG_DEBUG("SOCK_RECV_OK\n\r");
-					} else if (ret == SOCK_ERR_INVALID_ARG) {
-						NRF_LOG_ERROR("SOCK_ERR_INVALID_ARG\n\r");
-					} else if (ret == SOCK_ERR_BUFFER_FULL) {
-						NRF_LOG_ERROR("SOCK_ERR_BUFFER_FULL\n\r");
+					if (xSemaphoreGive(socket_rx_sema) != pdPASS) {
+						NRF_LOG_ERROR("xSemaphoreGive >>> ERROR >>> socket_rx_sema");
 					}
 				}
 			}
@@ -343,6 +343,9 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			if (pstrConnect->s8Error == 0) {
 				uint8 acBuffer[256];
 				uint16 u16MsgSize;
+
+				//calling receive because page 31 in software design guide
+				//ret = (sint16)recv(mqtt_client.ipstack ->my_socket, rxBuffer, rxBufferSize, 0);
 
 				NRF_LOG_INFO("socket_cb: Socket Connected");
 				xSemaphoreGive(app_socket_Sema);
@@ -478,20 +481,23 @@ int wifi_start_task(void) {
 		  will fail until the semaphore has first been given. */
 	}
 
+	socket_rx_sema = xSemaphoreCreateBinary();
+
 	socket_snd_Q = xQueueCreate(1, sizeof(sint16));
 
 	if (socket_snd_Q == NULL) {
 		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_snd_Q");
 	}
 
-	socket_rx_Q = xQueueCreate(1, sizeof(rxBuffer));
+	//	socket_rx_Q = xQueueCreate(1, sizeof(tstrSocketRecvMsg*));
+	//
+	//	if (socket_rx_Q == NULL) {
+	//		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_rx_Q");
+	//	}
 
-	if (socket_rx_Q == NULL) {
-		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_rx_Q");
-	}
-
+	//vTaskDelay(1000);
 	/* Create task for LED0 blinking with priority set to 2 */
-	err_code = (ret_code_t)xTaskCreate(wifi_task_function, "LAN", configMINIMAL_STACK_SIZE * 10, NULL, 2, &wifi_task_handle);
+	err_code = (ret_code_t)xTaskCreate(wifi_task_function, "LAN", configMINIMAL_STACK_SIZE * 11, NULL, 2, &wifi_task_handle);
 	if (err_code == pdPASS) {
 		NRF_LOG_INFO("WIFI TASK CREATED");
 		err_code = NRF_SUCCESS;

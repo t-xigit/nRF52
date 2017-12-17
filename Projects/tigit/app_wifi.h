@@ -11,8 +11,6 @@
  * @ingroup group_wifi
  * @brief Driver for managing the low-frequency clock (LFCLK) and the high-frequency clock (HFCLK).
  */
- 
- 
 
 #ifndef SDK_APP_WIFI_H__
 #define SDK_APP_WIFI_H__
@@ -21,29 +19,30 @@
 extern "C" {
 #endif
 
-#include "sdk_errors.h"
 #include "m2m_wifi.h"
+#include "sdk_errors.h"
+#include "socket.h"
 
 extern struct sockaddr_in resolved_addr;
+
 //Semaphores
 extern SemaphoreHandle_t app_wifi_sys_t_Sema;
 extern SemaphoreHandle_t app_dns_Sema;
+extern SemaphoreHandle_t socket_rx_sema;
 //Queues
 extern QueueHandle_t socket_snd_Q;
 extern QueueHandle_t socket_rx_Q;
 
-#define wifi_req_curr_rssi()   m2m_wifi_req_curr_rssi()
+#define rxBufferSize 256
+#define wifi_req_curr_rssi() m2m_wifi_req_curr_rssi()
 
-ret_code_t wifi_start_task(void);
+int wifi_start_task(void);
 void wifi_turn_off(void);
 
-
 /** @} */
-
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // SDK_COMMON_H__
-
+#endif  // SDK_COMMON_H__

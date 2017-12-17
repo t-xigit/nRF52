@@ -20,6 +20,7 @@
 
 #include "FreeRTOS_WINC1500_socket_wrapper.h"
 
+#include "app_mqtt.h"
 #include "app_wifi.h"
 
 /** Host name placeholder. */
@@ -69,8 +70,6 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 	int16_t ret;
 	sint16 s16Rcvd = 0;
 
-	NRF_LOG_DEBUG("FreeRTOS_write");
-
 	vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
 	do {
 		int rc = 0;
@@ -79,11 +78,11 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 		sentLen = ret;
 
 		if (xQueueReceive(socket_snd_Q, &s16Rcvd, xTicksToWait) != pdTRUE) {
-			NRF_LOG_ERROR("SOCKET SEND ERROR");
+			NRF_LOG_ERROR("FreeRTOS_write >>> SOCKET SEND ERROR");
 
 		} else {
 			sentLen += (int)s16Rcvd;
-			NRF_LOG_DEBUG("SOCKET SEND OK");
+			NRF_LOG_DEBUG("FreeRTOS_write >>> SOCKET SEND OK");
 			break;
 		}
 
@@ -133,22 +132,50 @@ exit:
 	return retVal;
 }
 
+sint16 s16BufferSizeRemaining;
+uint16_t u16NextData;
+uint8_t rxMessageBuffer[rxBufferSize];
+tstrSocketRecvMsg RecvDataStorage;
+
+void FreeRTOS_recv_copy(tstrSocketRecvMsg* RecvData) {
+	s16BufferSizeRemaining = 0;
+	u16NextData = 0;
+	RecvDataStorage.pu8Buffer = rxMessageBuffer;
+
+	memcpy(&RecvDataStorage, RecvData, sizeof(tstrSocketRecvMsg));
+	NRF_LOG_DEBUG("FreeRTOS_recv_copy >>> Copy Buffer %d Bytes", RecvData->s16BufferSize);
+	memcpy(&rxMessageBuffer, RecvData->pu8Buffer, RecvData->s16BufferSize);
+}
+
+int FreeRTOS_recv(Network* n, unsigned char* buffer, int len, int timeout_ms) {
+	if (!s16BufferSizeRemaining) {
+		if (xSemaphoreTake(socket_rx_sema, (TickType_t)portMAX_DELAY) == pdTRUE) {
+			s16BufferSizeRemaining = RecvDataStorage.s16BufferSize;
+			NRF_LOG_DEBUG("FreeRTOS_recv >>> Released");
+		} else {
+			NRF_LOG_ERROR("FreeRTOS_recv");
+		}
+	}
+
+	memcpy(buffer, RecvDataStorage.pu8Buffer + u16NextData, len);
+
+	u16NextData += len;
+	s16BufferSizeRemaining -= (sint16)len;
+
+	return len;
+}
+
 int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
 	TimeOut_t xTimeOut;
-	tstrSocketRecvMsg pstrRecv;
 	int recvLen = 0;
-
-	if (xQueueReceive(socket_rx_Q, &pstrRecv, xTicksToWait) != pdTRUE) {
-		NRF_LOG_ERROR("SOCKET RX Q ERROR");
-	}
 
 	vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
 	do {
 		int rc = 0;
 
 		//FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
-		//rc = FreeRTOS_recv(n->my_socket, buffer + recvLen, len - recvLen, 0);
+		rc = FreeRTOS_recv(n->my_socket, buffer + recvLen, len - recvLen, 0);
 		if (rc > 0)
 			recvLen += rc;
 		else if (rc < 0) {

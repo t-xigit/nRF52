@@ -19,7 +19,12 @@
 extern "C" {
 #endif
 
+#include "MQTTClient.h"
+
 extern SemaphoreHandle_t app_socket_Sema;
+extern SemaphoreHandle_t app_BS_Sema;
+extern MQTTClient mqtt_client;
+extern Network network;
 
 int mqtt_start_task(void);
 
