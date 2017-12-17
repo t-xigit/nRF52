@@ -40,7 +40,8 @@
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
-#define MQTT_BROKER_HOSTNAME "mqtt.nello.io" /**< MQTT Broker Address */
+#define MQTT_BROKER_HOSTNAME "test.mosquitto.org" /**< MQTT Broker Address */
+
 #define MQTT_BROKER_PORT 1883				 /**< MQTT Broker Port */
 
 /**
@@ -132,7 +133,7 @@ static void prvMQTTEchoTask(void* pvParameters) {
 		sprintf(payload, "message number %d", count);
 		message.payloadlen = strlen(payload);
 
-		if ((rc = MQTTPublish(&mqtt_client, "/nello_one/xrDbT1/map/", &message)) != 0)
+		if ((rc = MQTTPublish(&mqtt_client, "/testtop/one/", &message)) != 0)
 			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
 		//vTaskDelay(2);
 		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
