@@ -25,6 +25,7 @@ extern "C" {
 #include "sdk_errors.h"
 
 extern time_t unix_time;
+extern SemaphoreHandle_t m_rtc_semaphore;
 ret_code_t rtc_init_task(void);
 
 /** @} */

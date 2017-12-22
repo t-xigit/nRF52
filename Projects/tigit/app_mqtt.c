@@ -122,8 +122,8 @@ static void prvMQTTEchoTask(void* pvParameters) {
 		NRF_LOG_INFO("MQTT Subscribed");
 	}
 
-	//count = 10;
-	while (1) {
+	count = 10;
+	while (count) {
 		MQTTMessage message;
 		char payload[30];
 
@@ -133,12 +133,13 @@ static void prvMQTTEchoTask(void* pvParameters) {
 		sprintf(payload, "message number %d", count);
 		message.payloadlen = strlen(payload);
 
-		if ((rc = MQTTPublish(&mqtt_client, "/testtop/one/", &message)) != 0)
+		if ((rc = MQTTPublish(&mqtt_client, "testtop/one/", &message)) != 0)
 			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
 		//vTaskDelay(2);
 		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
-		count++;
+		count--;
 	}
+	while(1);
 
 	/* do not return */
 }

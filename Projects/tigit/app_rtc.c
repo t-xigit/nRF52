@@ -27,36 +27,36 @@
 #define NRF_LOG_MODULE_NAME app_rtc
 
 #if APP_RTC_CONFIG_LOG_ENABLED
-#define NRF_LOG_LEVEL       APP_RTC_CONFIG_LOG_LEVEL
-#define NRF_LOG_INFO_COLOR  APP_RTC_CONFIG_INFO_COLOR
+#define NRF_LOG_LEVEL APP_RTC_CONFIG_LOG_LEVEL
+#define NRF_LOG_INFO_COLOR APP_RTC_CONFIG_INFO_COLOR
 #define NRF_LOG_DEBUG_COLOR APP_RTC_CONFIG_DEBUG_COLOR
 
-#else //APP_RTC_CONFIG_LOG_ENABLED
-#define NRF_LOG_LEVEL       0
-#endif //APP_RTC_CONFIG_LOG_ENABLED
+#else  //APP_RTC_CONFIG_LOG_ENABLED
+#define NRF_LOG_LEVEL 0
+#endif  //APP_RTC_CONFIG_LOG_ENABLED
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
-#define	TASK_DELAY 600	      /**< Task	delay. Delays a	LED0 task for 200 ms */
-#define	TIMER_PERIOD 500      /**< Timer period. LED1 timer will expire	after 1000 ms */
-#define	RTC_PERIOD 1000000ULL /**< Timer period. LED1 timer will expire	after 1000 ms */
+#define TASK_DELAY 600		  /**< Task	delay. Delays a	LED0 task for 200 ms */
+#define TIMER_PERIOD 500	  /**< Timer period. LED1 timer will expire	after 1000 ms */
+#define RTC_PERIOD 1000000ULL /**< Timer period. LED1 timer will expire	after 1000 ms */
 
 /**
  * @brief RTC instance number used for blinking
  *
  */
-#define	BLINK_RTC 2
+#define BLINK_RTC 2
 
 /**
  * @brief RTC compare channel used
  *
  */
-#define	BLINK_RTC_CC 0
+#define BLINK_RTC_CC 0
 
 /**
  * @brief Number of RTC	ticks between interrupts
  */
-#define	BLINK_RTC_TICKS	(RTC_US_TO_TICKS(RTC_PERIOD, RTC_DEFAULT_CONFIG_FREQUENCY))
+#define BLINK_RTC_TICKS (RTC_US_TO_TICKS(RTC_PERIOD, RTC_DEFAULT_CONFIG_FREQUENCY))
 
 time_t unix_time = 0;
 
@@ -69,22 +69,21 @@ static nrf_drv_rtc_t const m_rtc = NRF_DRV_RTC_INSTANCE(BLINK_RTC);
 /**
  * @brief Semaphore set	in RTC event
  */
-static SemaphoreHandle_t m_rtc_semaphore;
+SemaphoreHandle_t m_rtc_semaphore;
 
 /**
  * @brief Function to convert Unix time	into string and	print it
  */
-void print_time(time_t*	unix_time) {
-
-	#define	PRINT_BUFFER_SIZE 80
+void print_time(time_t* unix_time) {
+#define PRINT_BUFFER_SIZE 80
 	//const time_t timezone_delta = 60 * 60 * 2;
 	struct tm asctime;
 	time_t time;
-	char	print_buffer[PRINT_BUFFER_SIZE];
+	char print_buffer[PRINT_BUFFER_SIZE];
 
-	uint64_t temp_time =	*unix_time;
+	uint64_t temp_time = *unix_time;
 
-	time	= (time_t)(temp_time);
+	time = (time_t)(temp_time);
 	//time = time + timezone_delta;
 
 	asctime = *gmtime(&time);
@@ -93,16 +92,15 @@ void print_time(time_t*	unix_time) {
 	NRF_LOG_RAW_INFO("%s\n", print_buffer);
 }
 
-
 static void rtc_int_handler(nrf_drv_rtc_int_type_t int_type) {
 	BaseType_t yield_req = pdFALSE;
 	ret_code_t err_code;
 	bsp_board_led_invert(BSP_BOARD_LED_3);
 	err_code = nrf_drv_rtc_cc_set(
-	&m_rtc,
-	BLINK_RTC_CC,
-	(nrf_rtc_cc_get(m_rtc.p_reg, BLINK_RTC_CC) + BLINK_RTC_TICKS) &	RTC_COUNTER_COUNTER_Msk,
-	true);
+		&m_rtc,
+		BLINK_RTC_CC,
+		(nrf_rtc_cc_get(m_rtc.p_reg, BLINK_RTC_CC) + BLINK_RTC_TICKS) & RTC_COUNTER_COUNTER_Msk,
+		true);
 	APP_ERROR_CHECK(err_code);
 
 	NRF_LOG_DEBUG("RTC INTERUPT");
@@ -122,25 +120,26 @@ static void rtc_task_function(void* pvParameter) {
 	ret_code_t err_code;
 	UNUSED_PARAMETER(pvParameter);
 
-	err_code = nrf_drv_rtc_init(&m_rtc,	&m_rtc_config, rtc_int_handler);
+	m_rtc_semaphore = xSemaphoreCreateBinary();
+	ASSERT(NULL != m_rtc_semaphore);
+
+	UNUSED_RETURN_VALUE(xSemaphoreTake(m_rtc_semaphore, portMAX_DELAY));
+
+	err_code = nrf_drv_rtc_init(&m_rtc, &m_rtc_config, rtc_int_handler);
 	APP_ERROR_CHECK(err_code);
-	err_code = nrf_drv_rtc_cc_set(&m_rtc, BLINK_RTC_CC,	BLINK_RTC_TICKS, true);
+	err_code = nrf_drv_rtc_cc_set(&m_rtc, BLINK_RTC_CC, BLINK_RTC_TICKS, true);
 	APP_ERROR_CHECK(err_code);
 	nrf_drv_rtc_enable(&m_rtc);
-
-	m_rtc_semaphore = xSemaphoreCreateBinary();
-	ASSERT(NULL	!= m_rtc_semaphore);
 
 	while (true) {
 		bsp_board_led_invert(BSP_BOARD_LED_0);
 		NRF_LOG_DEBUG("RTC TASK");
-		
+
 		if (unix_time) {
 			print_time(&unix_time);
 			unix_time++;
 		}
 
-		/* Delay a task	for a given number of ticks */
 		UNUSED_RETURN_VALUE(xSemaphoreTake(m_rtc_semaphore, portMAX_DELAY));
 	}
 }
@@ -148,7 +147,7 @@ static void rtc_task_function(void* pvParameter) {
 /** @brief RTC task init and start function
  */
 ret_code_t rtc_init_task(void) {
-	ret_code_t err_code	= NRF_SUCCESS;
+	ret_code_t err_code = NRF_SUCCESS;
 
 	/* Create task for LED0 blinking with priority set to 2 */
 	err_code = (ret_code_t)xTaskCreate(rtc_task_function, "RTC", configMINIMAL_STACK_SIZE + 200, NULL, 2, &rtc_task_handle);
