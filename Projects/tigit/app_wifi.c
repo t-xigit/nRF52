@@ -52,13 +52,13 @@
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
-#if 1
+#if 0
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Schluessel"
 #define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
 #define MAIN_WLAN_PSK "verygoodpw123"
 #endif
-#if 0
+#if 1
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Tech_D0042715"
 #define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
@@ -154,17 +154,13 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 		case M2M_WIFI_RESP_GET_SYS_TIME:
 
 			NRF_LOG_INFO("wifi_cb: M2M_WIFI_RESP_GET_SYS_TIME");
-			const 
-
 			//time at compilation
-			static const time_t ref_time = 1513981235;
-			static time_t temp_time = 0;
+			const time_t ref_time = 1513981235;
+			time_t temp_time = 0;
 
 			struct tm time_struct;
 			memset(&time_struct, 0, sizeof(struct tm));
 			sys_time = (tstrSystemTime*)pvMsg;
-
-			NRF_LOG_DEBUG("%d", sys_time);
 
 			time_struct.tm_sec = (int)sys_time->u8Second;
 			time_struct.tm_min = (int)sys_time->u8Minute;
@@ -175,15 +171,13 @@ static void wifi_cb(uint8_t u8MsgType, void* pvMsg) {
 
 			temp_time = mktime(&time_struct);
 			// if received time makes sense
-			if(temp_time > ref_time){
-
-			   unix_time = temp_time;
-			   //unlock rtc task
-                           xSemaphoreGive(m_rtc_semaphore);
-			   xSemaphoreGive(app_wifi_sys_t_Sema);                                                      			
+			if (temp_time > ref_time) {
+				unix_time = temp_time;
+				NRF_LOG_INFO("%s", ctime(&unix_time));
+				//unlock rtc task
+				xSemaphoreGive(m_rtc_semaphore);
+				xSemaphoreGive(app_wifi_sys_t_Sema);
 			}
-			
-			NRF_LOG_INFO("%s", ctime(&unix_time));			
 
 			break;
 

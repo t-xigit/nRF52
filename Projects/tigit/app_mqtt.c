@@ -42,7 +42,7 @@ NRF_LOG_MODULE_REGISTER();
 
 #define MQTT_BROKER_HOSTNAME "test.mosquitto.org" /**< MQTT Broker Address */
 
-#define MQTT_BROKER_PORT 1883				 /**< MQTT Broker Port */
+#define MQTT_BROKER_PORT 1883 /**< MQTT Broker Port */
 
 /**
  * @brief RTC instance number used for blinking
@@ -55,6 +55,7 @@ Network network;
 
 TaskHandle_t mqtt_task_handle;	 /**< Taskhandle for MQTT client */
 SemaphoreHandle_t app_socket_Sema; /**< Semaphore for MQTT client */
+SemaphoreHandle_t app_button4_Sema;
 SemaphoreHandle_t app_BS_Sema;
 
 void messageArrived(MessageData* data) {
@@ -116,47 +117,27 @@ static void prvMQTTEchoTask(void* pvParameters) {
 		NRF_LOG_INFO("MQTT Connected");
 	}
 
-	if ((rc = MQTTSubscribe(&mqtt_client, "FreeRTOS/sample/#", 2, messageArrived)) != 0) {
+	if ((rc = MQTTSubscribe(&mqtt_client, "testtop/one/", 1, messageArrived)) != 0) {
 		NRF_LOG_ERROR("Return code from MQTT subscribe is %d", rc);
 	} else {
 		NRF_LOG_INFO("MQTT Subscribed");
-	}
+	}	
 
-	count = 10;
-	while (count) {
-		MQTTMessage message;
-		char payload[30];
+	MQTTMessage message;
+	char payload[30];
 
-		message.qos = 1;
-		message.retained = 0;
-		message.payload = payload;
-		sprintf(payload, "message number %d", count);
-		message.payloadlen = strlen(payload);
+	message.qos = 1;
+	message.retained = 0;
+	message.payload = payload;
+        sprintf(payload, "online");
+	message.payloadlen = strlen(payload);
 
-		if ((rc = MQTTPublish(&mqtt_client, "testtop/one/", &message)) != 0)
+        if ((rc = MQTTPublish(&mqtt_client, "testtop/one/", &message)) != 0)
 			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
-		//vTaskDelay(2);
 		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
-		count--;
-	}
-	while(1);
-
-	/* do not return */
+	vTaskSuspend(NULL);		
+		
 }
-
-#if 0
-void vStartMQTTTasks(uint16_t usTaskStackSize, UBaseType_t uxTaskPriority)
-{
-	BaseType_t x = 0L;
-
-	xTaskCreate(prvMQTTEchoTask,	/* The function that implements the task. */
-			"MQTTEcho0",			/* Just a text name for the task to aid debugging. */
-			usTaskStackSize,	/* The stack size is defined in FreeRTOSIPConfig.h. */
-			(void *)x,		/* The task parameter, not used in this case. */
-			uxTaskPriority,		/* The priority assigned to the task is defined in FreeRTOSConfig.h. */
-			NULL);				/* The task handle is not used. */
-}
-#endif
 
 /**@brief RTC task handle function.
  *
@@ -167,6 +148,9 @@ int mqtt_start_task(void) {
 
 	/* Attempt to create a semaphore. */
 	app_socket_Sema = xSemaphoreCreateBinary();
+
+	/* Attempt to create a semaphore. */
+	app_button4_Sema = xSemaphoreCreateBinary();
 
 	if (app_socket_Sema == NULL) {
 		/* There was insufficient FreeRTOS heap available for the semaphore to

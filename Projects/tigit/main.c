@@ -122,8 +122,9 @@ static void button_task_function(void* pvParameter) {
 		}
 
 		if (bsp_board_button_state_get(button_4_idx)) {
-			NRF_LOG_INFO("BUTTON 4\n\r");
+			NRF_LOG_INFO("BUTTON 4");
 			/* Block to debounce*/
+                        xSemaphoreGive(app_button4_Sema);
 			vTaskDelay(BUTTON_TASK_DELAY * 2);
 		}
 	}
@@ -140,6 +141,7 @@ static void led_toggle_timer_callback(void* pvParameter) {
 	xTaskNotifyGive(timer_task_handle);
 }
 
+#if 1
 int main(void) {
 	ret_code_t err_code;
 
@@ -183,6 +185,37 @@ int main(void) {
          * in vTaskStartScheduler function. */
 	}
 }
+#endif
+
+#if 0
+
+int main(void) {
+	ret_code_t err_code;
+
+	log_init();
+
+	/* Initialize clock driver for better time accuracy in FREERTOS */
+	err_code = nrf_drv_clock_init();
+	APP_ERROR_CHECK(err_code);
+
+	/* Configure LED-pins as outputs */
+	bsp_board_leds_init();        
+
+	/* Create task for button handling with priority set to 2 */
+	UNUSED_VARIABLE(xTaskCreate(button_task_function, "BUT", configMINIMAL_STACK_SIZE * 2, NULL, 2, &button_task_handle));
+	
+
+	/* Activate deep sleep mode */
+	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+
+	/* Start FreeRTOS scheduler. */
+	vTaskStartScheduler();
+
+	while (true) {
+		ASSERT(false);
+	}
+}
+#endif
 
 /**
  *@}

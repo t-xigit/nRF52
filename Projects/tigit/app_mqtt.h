@@ -23,6 +23,7 @@ extern "C" {
 
 extern SemaphoreHandle_t app_socket_Sema;
 extern SemaphoreHandle_t app_BS_Sema;
+extern SemaphoreHandle_t app_button4_Sema;
 extern MQTTClient mqtt_client;
 extern Network network;
 
