@@ -128,7 +128,7 @@
 // <4=> Debug 
 
 #ifndef APP_MQTT_CONFIG_LOG_LEVEL
-#define APP_MQTT_CONFIG_LOG_LEVEL 3
+#define APP_MQTT_CONFIG_LOG_LEVEL 4
 #endif
 
 // <o> APP_MQTT_CONFIG_INFO_COLOR  - ANSI escape code prefix.

@@ -15,6 +15,7 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
+#include "queue.h"
 #include "semphr.h"
 #include "task.h"
 #include "timers.h"
@@ -50,28 +51,108 @@ NRF_LOG_MODULE_REGISTER();
  */
 #define BLINK_RTC 2
 
+const char topic_online[] = "table/online/";
+const char topic_white_goal[] = "goal/white/";
+const char topic_black_goal[] = "goal/black/";
+
+unsigned char MQTTsendbuf[80], MQTTreadbuf[80];
 MQTTClient mqtt_client;
 Network network;
 
-TaskHandle_t mqtt_task_handle;	 /**< Taskhandle for MQTT client */
-SemaphoreHandle_t app_socket_Sema; /**< Semaphore for MQTT client */
-SemaphoreHandle_t app_button4_Sema;
-SemaphoreHandle_t app_BS_Sema;
+TaskHandle_t mqtt_task_handle;	       /**< Taskhandle for MQTT client */
+TaskHandle_t mqtt_publish_handle;      /**< Taskhandle for MQTT client */
+SemaphoreHandle_t app_socket_Sema;     /**< Semaphore for MQTT client */
+SemaphoreHandle_t app_button4_Sema;    /**< Seamphore for button press indicator */
+
+QueueHandle_t mqtt_publish_Q; /**< Queue for messages to be published */
 
 void messageArrived(MessageData* data) {
 	printf("Message arrived on topic %.*s: %.*s\n", data->topicName->lenstring.len, data->topicName->lenstring.data,
 		data->message->payloadlen, data->message->payload);
 }
 
+/**@brief Prepares Topic to be published on
+ *
+ * @param[in] msg   Pointer to message struct
+ * @param[in] topic one of the pre-defined topics
+ */
+static void app_MQTTPublishSetTopic(Pub_MQTTMessage* msg, publishTopics topic) {		
+
+	switch (topic) {
+		case white: {
+			msg->MessageData.topicName->cstring = (char*)topic_white_goal;
+			msg->MessageData.topicName->lenstring.len = strlen(topic_white_goal);			
+			break;
+		}
+
+		case black: {
+			msg->MessageData.topicName->cstring = (char*)topic_black_goal;
+			msg->MessageData.topicName->lenstring.len = strlen(topic_black_goal);
+			break;
+		}
+
+		case online: {
+			msg->MessageData.topicName->cstring = (char*)topic_online;
+			msg->MessageData.topicName->lenstring.len = strlen(topic_online);
+			break;
+		}
+	}
+        
+}
+
+void app_MQTTPublishSendQueue(publishTopics topic, uint32_t payload) {
+	Pub_MQTTMessage pub_msg;
+	memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
+
+	pub_msg.MessageData.message->payload = (void*)pub_msg.payload_buff;
+	pub_msg.MessageData.message->qos = 1;
+	pub_msg.MessageData.message->retained = 0;
+        sprintf(pub_msg.payload_buff, "%d",payload);
+	pub_msg.MessageData.message->payloadlen = strlen(pub_msg.payload_buff);       
+	
+	app_MQTTPublishSetTopic(&pub_msg, topic);	
+
+	if (mqtt_publish_Q != 0) {
+		if (xQueueSend(mqtt_publish_Q,
+				(void*)&pub_msg,
+				(TickType_t)10) != pdPASS) {
+			/* Failed to post the message, even after 10 ticks. */
+                        NRF_LOG_ERROR("app_MQTTPublish >>> Queue write error");
+		}			
+	}
+}
+
+void app_MQTTPublishQueueHandler(publishTopics topic, uint32_t payload) {
+	Pub_MQTTMessage pub_msg;
+	size_t queue_size = 0;
+	int rc = 0;
+        NRF_LOG_INFO("app_MQTTPublishQueueHandler");
+	while (1) {
+		NRF_LOG_INFO("app_MQTTPublishQueueHandler");
+		// initialize buffer
+		memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
+		// check how many items are in the queue
+		queue_size = uxQueueMessagesWaiting(mqtt_publish_Q);
+		NRF_LOG_INFO("MQTT Publish Queue Items: %d", queue_size);
+		// read message from queue
+		xQueueReceive(mqtt_publish_Q, &pub_msg, (TickType_t)portMAX_DELAY);
+		
+		NRF_LOG_INFO("Publishing: %s", pub_msg.MessageData.topicName->cstring);
+
+		if ((rc = MQTTPublish(&mqtt_client, pub_msg.MessageData.topicName->cstring, pub_msg.MessageData.message)) != 0)
+			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+	}
+}
+
 static void prvMQTTEchoTask(void* pvParameters) {
-	unsigned char sendbuf[80], readbuf[80];
 	int rc = 0,
-		count = 0;
+	count = 0;
 	MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
 
 	pvParameters = 0;
 	NetworkInit(&network);
-	MQTTClientInit(&mqtt_client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
+	MQTTClientInit(&mqtt_client, &network, 30000, MQTTsendbuf, sizeof(MQTTsendbuf), MQTTreadbuf, sizeof(MQTTreadbuf));
 
 	char* address = MQTT_BROKER_HOSTNAME;
 
@@ -116,27 +197,49 @@ static void prvMQTTEchoTask(void* pvParameters) {
 	} else {
 		NRF_LOG_INFO("MQTT Connected");
 	}
-
+/*
 	if ((rc = MQTTSubscribe(&mqtt_client, "testtop/one/", 1, messageArrived)) != 0) {
 		NRF_LOG_ERROR("Return code from MQTT subscribe is %d", rc);
 	} else {
 		NRF_LOG_INFO("MQTT Subscribed");
-	}	
-
+	}
+*/
 	MQTTMessage message;
 	char payload[30];
 
 	message.qos = 1;
 	message.retained = 0;
 	message.payload = payload;
-        sprintf(payload, "online");
+	sprintf(payload, "online");
 	message.payloadlen = strlen(payload);
 
-        if ((rc = MQTTPublish(&mqtt_client, "testtop/one/", &message)) != 0)
-			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+	if ((rc = MQTTPublish(&mqtt_client, "testtop/one/", &message)) != 0)
 		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
-	vTaskSuspend(NULL);		
-		
+	NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+
+	app_MQTTPublishSendQueue(online, 1);
+        app_MQTTPublishSendQueue(white, 1);
+	app_MQTTPublishSendQueue(black, 1);
+	
+	ret_code_t err_code = (ret_code_t)xTaskCreate(app_MQTTPublishQueueHandler,  /* The function that implements the task. */
+		"PQU",								    /* Just a text name for the task to aid debugging. */
+		configMINIMAL_STACK_SIZE *4,					    /* The stack size is defined in FreeRTOSIPConfig.h. */
+		NULL,								    /* The task parameter, not used in this case. */
+		2,								    /* The priority assigned to the task is defined in FreeRTOSConfig.h. */
+		mqtt_publish_handle);						    /* The task handle is not used. */
+
+	if (err_code == pdPASS) {
+		NRF_LOG_INFO("MQTT Publish TASK CREATED");
+		err_code = NRF_SUCCESS;
+	} else {
+		NRF_LOG_ERROR("MQTT TASK CREATE ERROR");
+		err_code = NRF_ERROR_NO_MEM;
+	}
+
+        
+
+
+	vTaskSuspend(NULL);
 }
 
 /**@brief RTC task handle function.
@@ -163,18 +266,13 @@ int mqtt_start_task(void) {
 		NRF_LOG_INFO("app_socket_Sema");
 	}
 
-	/* Attempt to create a semaphore. */
-	app_BS_Sema = xSemaphoreCreateBinary();
+	mqtt_publish_Q = xQueueCreate(10, sizeof(Pub_MQTTMessage));
+	if (mqtt_publish_Q == NULL) {
+		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> mqtt_publish_Q");
+	}
 
-	if (app_BS_Sema == NULL) {
-		/* There was insufficient FreeRTOS heap available for the semaphore to
-	       be created successfully. */
-		NRF_LOG_ERROR("app_socket_Sema");
-	} else {
-		/* The semaphore can now be used. Its handle is stored in the
-		  xSemahore variable.  Calling xSemaphoreTake() on the semaphore here
-		  will fail until the semaphore has first been given. */
-		NRF_LOG_INFO("app_BS_Sema");
+	if (socket_rx_Q == NULL) {
+		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_rx_Q");
 	}
 
 	err_code = (ret_code_t)xTaskCreate(prvMQTTEchoTask, /* The function that implements the task. */

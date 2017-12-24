@@ -52,13 +52,13 @@
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
-#if 0
+#if 1
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Schluessel"
 #define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
 #define MAIN_WLAN_PSK "verygoodpw123"
 #endif
-#if 1
+#if 0
 /** Wi-Fi Settings */
 #define MAIN_WLAN_SSID "Tech_D0042715"
 #define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
