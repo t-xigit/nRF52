@@ -59,10 +59,10 @@ unsigned char MQTTsendbuf[80], MQTTreadbuf[80];
 MQTTClient mqtt_client;
 Network network;
 
-TaskHandle_t mqtt_task_handle;	       /**< Taskhandle for MQTT client */
-TaskHandle_t mqtt_publish_handle;      /**< Taskhandle for MQTT client */
-SemaphoreHandle_t app_socket_Sema;     /**< Semaphore for MQTT client */
-SemaphoreHandle_t app_button4_Sema;    /**< Seamphore for button press indicator */
+TaskHandle_t mqtt_task_handle;		/**< Taskhandle for MQTT client */
+TaskHandle_t mqtt_publish_handle;   /**< Taskhandle for MQTT client */
+SemaphoreHandle_t app_socket_Sema;  /**< Semaphore for MQTT client */
+SemaphoreHandle_t app_button4_Sema; /**< Seamphore for button press indicator */
 
 QueueHandle_t mqtt_publish_Q; /**< Queue for messages to be published */
 
@@ -70,63 +70,84 @@ void messageArrived(MessageData* data) {
 	printf("Message arrived on topic %.*s: %.*s\n", data->topicName->lenstring.len, data->topicName->lenstring.data,
 		data->message->payloadlen, data->message->payload);
 }
-
+#if 1
 /**@brief Prepares Topic to be published on
  *
  * @param[in] msg   Pointer to message struct
  * @param[in] topic one of the pre-defined topics
  */
-static void app_MQTTPublishSetTopic(Pub_MQTTMessage* msg, publishTopics topic) {		
-
+static void app_MQTTPublishSetTopic(Pub_MQTTMessage* msg, publishTopics topic) {
 	switch (topic) {
 		case white: {
-			msg->MessageData.topicName->cstring = (char*)topic_white_goal;
-			msg->MessageData.topicName->lenstring.len = strlen(topic_white_goal);			
+			msg->MesseagData.topicName->cstring	  = (char*)topic_white_goal;
+			msg->MesseagData.topicName->lenstring.len = strlen(topic_white_goal);
+
 			break;
 		}
 
 		case black: {
-			msg->MessageData.topicName->cstring = (char*)topic_black_goal;
-			msg->MessageData.topicName->lenstring.len = strlen(topic_black_goal);
+			msg->MesseagData.topicName->cstring	  = (char*)topic_black_goal;
+			msg->MesseagData.topicName->lenstring.len = strlen(topic_black_goal);
+
 			break;
 		}
 
 		case online: {
-			msg->MessageData.topicName->cstring = (char*)topic_online;
-			msg->MessageData.topicName->lenstring.len = strlen(topic_online);
+			msg->MesseagData.topicName->cstring	  = (char*)topic_online;
+			msg->MesseagData.topicName->lenstring.len = strlen(topic_online);
+
 			break;
 		}
 	}
-        
 }
+#endif
 
 void app_MQTTPublishSendQueue(publishTopics topic, uint32_t payload) {
 	Pub_MQTTMessage pub_msg;
 	memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
 
-	pub_msg.MessageData.message->payload = (void*)pub_msg.payload_buff;
-	pub_msg.MessageData.message->qos = 1;
-	pub_msg.MessageData.message->retained = 0;
-        sprintf(pub_msg.payload_buff, "%d",payload);
-	pub_msg.MessageData.message->payloadlen = strlen(pub_msg.payload_buff);       
-	
-	app_MQTTPublishSetTopic(&pub_msg, topic);	
+	//Assign Buffer Pointers
+	pub_msg.Message.payload = pub_msg.payload_buff;			// Assign Payload Buffer to Message
+	pub_msg.MesseagData.topicName = &pub_msg.MessageTopic;  // Assign Topic to Topic MetaData
+	pub_msg.MesseagData.message = &pub_msg.Message;			// Assign Message to Message MetaData
+
+	pub_msg.MesseagData.message->qos = 1;
+	pub_msg.MesseagData.message->retained = 0;
+
+	sprintf(pub_msg.MesseagData.message->payload, "%d", payload);
+	pub_msg.MesseagData.message->payloadlen = strlen(pub_msg.MesseagData.message->payload);
+
+	app_MQTTPublishSetTopic(&pub_msg, topic);
 
 	if (mqtt_publish_Q != 0) {
 		if (xQueueSend(mqtt_publish_Q,
 				(void*)&pub_msg,
 				(TickType_t)10) != pdPASS) {
 			/* Failed to post the message, even after 10 ticks. */
-                        NRF_LOG_ERROR("app_MQTTPublish >>> Queue write error");
-		}			
+			NRF_LOG_ERROR("app_MQTTPublish >>> Queue write error");
+		}
 	}
+}
+
+void app_test(publishTopics topic, uint32_t payload) {
+	Pub_MQTTMessage pub_msg;
+
+	memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
+
+	//Assign Buffer Pointers
+	pub_msg.Message.payload = pub_msg.payload_buff;			// Assign Payload Buffer to Message
+	pub_msg.MesseagData.topicName = &pub_msg.MessageTopic;  // Assign Topic to Topic MetaData
+	pub_msg.MesseagData.message = &pub_msg.Message;			// Assign Message to Message MetaData
+
+	printf("size of Pub_MQTTMessage: %d", sizeof(pub_msg));
 }
 
 void app_MQTTPublishQueueHandler(publishTopics topic, uint32_t payload) {
 	Pub_MQTTMessage pub_msg;
+        memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
 	size_t queue_size = 0;
 	int rc = 0;
-        NRF_LOG_INFO("app_MQTTPublishQueueHandler");
+	NRF_LOG_INFO("app_MQTTPublishQueueHandler");
 	while (1) {
 		NRF_LOG_INFO("app_MQTTPublishQueueHandler");
 		// initialize buffer
@@ -137,9 +158,9 @@ void app_MQTTPublishQueueHandler(publishTopics topic, uint32_t payload) {
 		// read message from queue
 		xQueueReceive(mqtt_publish_Q, &pub_msg, (TickType_t)portMAX_DELAY);
 		
-		NRF_LOG_INFO("Publishing: %s", pub_msg.MessageData.topicName->cstring);
+               // NRF_LOG_INFO("Publishing: %s/%s", pub_msg.MesseagData.topicName->cstring, pub_msg.MesseagData.message->payload);
 
-		if ((rc = MQTTPublish(&mqtt_client, pub_msg.MessageData.topicName->cstring, pub_msg.MessageData.message)) != 0)
+		if ((rc = MQTTPublish(&mqtt_client, pub_msg.MesseagData.topicName->cstring, pub_msg.MesseagData.message)) != 0)
 			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
 		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
 	}
@@ -147,7 +168,7 @@ void app_MQTTPublishQueueHandler(publishTopics topic, uint32_t payload) {
 
 static void prvMQTTEchoTask(void* pvParameters) {
 	int rc = 0,
-	count = 0;
+		count = 0;
 	MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
 
 	pvParameters = 0;
@@ -197,7 +218,7 @@ static void prvMQTTEchoTask(void* pvParameters) {
 	} else {
 		NRF_LOG_INFO("MQTT Connected");
 	}
-/*
+	/*
 	if ((rc = MQTTSubscribe(&mqtt_client, "testtop/one/", 1, messageArrived)) != 0) {
 		NRF_LOG_ERROR("Return code from MQTT subscribe is %d", rc);
 	} else {
@@ -218,15 +239,15 @@ static void prvMQTTEchoTask(void* pvParameters) {
 	NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
 
 	app_MQTTPublishSendQueue(online, 1);
-        app_MQTTPublishSendQueue(white, 1);
+	app_MQTTPublishSendQueue(white, 1);
 	app_MQTTPublishSendQueue(black, 1);
-	
-	ret_code_t err_code = (ret_code_t)xTaskCreate(app_MQTTPublishQueueHandler,  /* The function that implements the task. */
-		"PQU",								    /* Just a text name for the task to aid debugging. */
-		configMINIMAL_STACK_SIZE *4,					    /* The stack size is defined in FreeRTOSIPConfig.h. */
-		NULL,								    /* The task parameter, not used in this case. */
-		2,								    /* The priority assigned to the task is defined in FreeRTOSConfig.h. */
-		mqtt_publish_handle);						    /* The task handle is not used. */
+
+	ret_code_t err_code = (ret_code_t)xTaskCreate(app_MQTTPublishQueueHandler, /* The function that implements the task. */
+		"PQU",																   /* Just a text name for the task to aid debugging. */
+		configMINIMAL_STACK_SIZE * 4,										   /* The stack size is defined in FreeRTOSIPConfig.h. */
+		NULL,																   /* The task parameter, not used in this case. */
+		2,																	   /* The priority assigned to the task is defined in FreeRTOSConfig.h. */
+		mqtt_publish_handle);												   /* The task handle is not used. */
 
 	if (err_code == pdPASS) {
 		NRF_LOG_INFO("MQTT Publish TASK CREATED");
@@ -235,9 +256,6 @@ static void prvMQTTEchoTask(void* pvParameters) {
 		NRF_LOG_ERROR("MQTT TASK CREATE ERROR");
 		err_code = NRF_ERROR_NO_MEM;
 	}
-
-        
-
 
 	vTaskSuspend(NULL);
 }
