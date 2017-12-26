@@ -260,7 +260,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 			s16Rcvd = *(sint16*)pvMsg;
 			NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_SEND: %d", s16Rcvd);
 			//calling receive because page 31 in software design guide
-			ret = recv(0, rxBuffer, rxBufferSize, 0);
+			ret = (sint16)recv(mqtt_client.ipstack ->my_socket, rxBuffer, rxBufferSize, 0);
 			//calling receive because page 31 in software design guide
 			if (xQueueSend(socket_snd_Q, (void*)&s16Rcvd, (TickType_t)10) != pdPASS) {
 				NRF_LOG_ERROR("xQueueSend >>> ERROR >>> socket_snd_Q");
@@ -337,6 +337,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 					}
 				}
 			}
+                        ret = (sint16)recv(mqtt_client.ipstack ->my_socket, rxBuffer, rxBufferSize, 0);
 
 		} break;
 
@@ -350,7 +351,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				uint16 u16MsgSize;
 
 				//calling receive because page 31 in software design guide
-				//ret = (sint16)recv(mqtt_client.ipstack ->my_socket, rxBuffer, rxBufferSize, 0);
+				ret = (sint16)recv(mqtt_client.ipstack ->my_socket, rxBuffer, rxBufferSize, 0);
 
 				NRF_LOG_INFO("socket_cb: Socket Connected");
 				xSemaphoreGive(app_socket_Sema);
