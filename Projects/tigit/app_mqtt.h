@@ -30,9 +30,8 @@ extern Network network;
 extern QueueHandle_t mqtt_publish_Q; /**< Queue for messages to be published */
 
 typedef struct Pub_MQTTMessage_t {
-	MQTTMessage Message;	
+	MQTTMessage Message;
 	MQTTString MessageTopic;
-	MessageData MesseagData;
 	char payload_buff[30];
 } Pub_MQTTMessage;
 

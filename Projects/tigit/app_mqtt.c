@@ -1,5 +1,5 @@
 /** @file app_mqtt.c
- *  
+ *
  * @brief MQTT MODULE FILE
  *
  * This	file contains the source code for the rtc module
@@ -51,9 +51,9 @@ NRF_LOG_MODULE_REGISTER();
  */
 #define BLINK_RTC 2
 
-const char topic_online[] = "table/online/";
-const char topic_white_goal[] = "goal/white/";
-const char topic_black_goal[] = "goal/black/";
+const char topic_online[]		= "table/online/";
+const char topic_white_goal[]	= "goal/white/";
+const char topic_black_goal[]	= "goal/black/";
 
 unsigned char MQTTsendbuf[80], MQTTreadbuf[80];
 MQTTClient mqtt_client;
@@ -79,22 +79,22 @@ void messageArrived(MessageData* data) {
 static void app_MQTTPublishSetTopic(Pub_MQTTMessage* msg, publishTopics topic) {
 	switch (topic) {
 		case white: {
-			msg->MesseagData.topicName->cstring	  = (char*)topic_white_goal;
-			msg->MesseagData.topicName->lenstring.len = strlen(topic_white_goal);
+			msg->MessageTopic.cstring		= (char*)topic_white_goal;
+			msg->MessageTopic.lenstring.len = strlen(topic_white_goal);
 
 			break;
 		}
 
 		case black: {
-			msg->MesseagData.topicName->cstring	  = (char*)topic_black_goal;
-			msg->MesseagData.topicName->lenstring.len = strlen(topic_black_goal);
+			msg->MessageTopic.cstring		= (char*)topic_black_goal;
+			msg->MessageTopic.lenstring.len = strlen(topic_black_goal);
 
 			break;
 		}
 
 		case online: {
-			msg->MesseagData.topicName->cstring	  = (char*)topic_online;
-			msg->MesseagData.topicName->lenstring.len = strlen(topic_online);
+			msg->MessageTopic.cstring	  = (char*)topic_online;
+			msg->MessageTopic.lenstring.len = strlen(topic_online);
 
 			break;
 		}
@@ -106,16 +106,11 @@ void app_MQTTPublishSendQueue(publishTopics topic, uint32_t payload) {
 	Pub_MQTTMessage pub_msg;
 	memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
 
-	//Assign Buffer Pointers
-	pub_msg.Message.payload = pub_msg.payload_buff;			// Assign Payload Buffer to Message
-	pub_msg.MesseagData.topicName = &pub_msg.MessageTopic;		// Assign Topic to Topic MetaData
-	pub_msg.MesseagData.message = &pub_msg.Message;			// Assign Message to Message MetaData
+	pub_msg.Message.qos = 1;
+	pub_msg.Message.retained = 0;
 
-	pub_msg.MesseagData.message->qos = 1;
-	pub_msg.MesseagData.message->retained = 0;
-
-	sprintf(pub_msg.MesseagData.message->payload, "%d", payload);
-	pub_msg.MesseagData.message->payloadlen = strlen(pub_msg.MesseagData.message->payload);
+	sprintf(pub_msg.payload_buff, "%d", payload);
+	pub_msg.Message.payloadlen = strlen(pub_msg.payload_buff);
 
 	app_MQTTPublishSetTopic(&pub_msg, topic);
 
@@ -135,45 +130,40 @@ void app_test(publishTopics topic, uint32_t payload) {
 	memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
 
 	//Assign Buffer Pointers
-	pub_msg.Message.payload = pub_msg.payload_buff;			// Assign Payload Buffer to Message
-	pub_msg.MesseagData.topicName = &pub_msg.MessageTopic;  // Assign Topic to Topic MetaData
-	pub_msg.MesseagData.message = &pub_msg.Message;			// Assign Message to Message MetaData
+//	pub_msg.Message.payload = pub_msg.payload_buff;			// Assign Payload Buffer to Message
+//	pub_msg.MesseagData.topicName = &pub_msg.MessageTopic;  // Assign Topic to Topic MetaData
+//	pub_msg.MesseagData.message = &pub_msg.Message;			// Assign Message to Message MetaData
 
 	printf("size of Pub_MQTTMessage: %d", sizeof(pub_msg));
 }
 
 void app_MQTTPublishQueueHandler(publishTopics topic, uint32_t payload) {
+
 	Pub_MQTTMessage pub_msg;
-        memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
+
 	size_t queue_size = 0;
-	int rc = 0;	
-
-	// BUG
-	// The Publish call is stuck in at a Mutex,
-
-	char test[] = "just some random string";
+	int rc = 0;
 
 	while (1) {
 		NRF_LOG_INFO("app_MQTTPublishQueueHandler");
 		// initialize buffer
 		memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
+
 		// check how many items are in the queue
 		queue_size = uxQueueMessagesWaiting(mqtt_publish_Q);
 		NRF_LOG_INFO("MQTT Publish Queue Items: %d", queue_size);
+
 		// read message from queue
 		xQueueReceive(mqtt_publish_Q, &pub_msg, (TickType_t)portMAX_DELAY);
-		
-		
-                //msg->MesseagData.topicName->cstring	
-		
-               NRF_LOG_INFO("Publishing: %s - %s ", pub_msg.MessageTopic.cstring, pub_msg.Message.payload);
-               
-               
-                //msg->MesseagData.topicName->cstring	  = (char*)topic_white_goal;
 
-//		if ((rc = MQTTPublish(&mqtt_client, pub_msg.MesseagData.topicName->cstring, &pub_msg.MesseagData.message)) != 0)
-//			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
-//		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+		NRF_LOG_INFO("Publishing Topic  : %s", pub_msg.MessageTopic.cstring);
+        NRF_LOG_INFO("Publishing Payload: %s", pub_msg.payload_buff);
+
+#if 0 // BUG The Publish call is stuck in at a Mutex,
+		if ((rc = MQTTPublish(&mqtt_client, pub_msg.MessageTopic.cstring, &pub_msg.Message)) != 0)
+			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+#endif
 		 vTaskDelay(500);
 	}
 }
