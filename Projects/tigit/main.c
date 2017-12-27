@@ -3,10 +3,10 @@
  * @brief WINC1500 FreeRTOS Example Application main file.
  *
  * This file contains the source code for a sample application using FreeRTOS to do some wifi stuff.
- *	
+ *
  * @mainpage Start Page
  *	Porpose is having a start point for Projects using the nRF52 SoC. With following tools:
- *  - Segger Embedded Studio	
+ *  - Segger Embedded Studio
  *  - FreeRTOS v9
  *  - WINC1500
  *  - PAHO MQTT C-Embedded Client
@@ -18,7 +18,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
-
 
 #include "app_error.h"
 #include "boards.h"
@@ -42,6 +41,7 @@
 #include "app_rtc.h"
 #include "app_wifi.h"
 #include "app_mqtt.h"
+#include "app_switch.h"
 
 #if LEDS_NUMBER <= 2
 #error "Board is not equipped with enough amount of LEDs"
@@ -78,58 +78,6 @@ static void timer_task_function(void* pvParameter) {
 	}
 }
 
-TaskHandle_t button_task_handle; /**< Reference to button task. */
-
-/**@brief Button task entry function.
- *
- * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
- */
-static void button_task_function(void* pvParameter) {
-#define BUTTON_TASK_DELAY 100  // 100ms
-	UNUSED_PARAMETER(pvParameter);
-
-	uint32_t button_1_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_0);
-	uint32_t button_2_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_1);
-	uint32_t button_3_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_2);
-	uint32_t button_4_idx = bsp_board_pin_to_button_idx(BSP_BUTTON_3);
-
-	/* initializing buttons*/
-	bsp_board_buttons_init();
-
-	while (true) {
-		/* Block to wait for next poll*/
-		vTaskDelay(BUTTON_TASK_DELAY);
-
-		if (bsp_board_button_state_get(button_1_idx)) {
-			NRF_LOG_INFO("BUTTON 1\n\r");
-			NRF_LOG_INFO("wifi_req_curr_rssi\n\r");
-			wifi_req_curr_rssi();
-			/* Block to debounce*/
-			vTaskDelay(BUTTON_TASK_DELAY * 2);
-		}
-
-		if (bsp_board_button_state_get(button_2_idx)) {
-			NRF_LOG_INFO("BUTTON 2\n\r");			
-			wifi_turn_off();
-			/* Block to debounce*/
-			vTaskDelay(BUTTON_TASK_DELAY * 2);
-		}
-
-		if (bsp_board_button_state_get(button_3_idx)) {
-			NRF_LOG_INFO("BUTTON 3\n\r");								
-			/* Block to debounce*/
-			vTaskDelay(BUTTON_TASK_DELAY * 2);
-		}
-
-		if (bsp_board_button_state_get(button_4_idx)) {
-			NRF_LOG_INFO("BUTTON 4");
-			/* Block to debounce*/
-                        xSemaphoreGive(app_button4_Sema);
-			vTaskDelay(BUTTON_TASK_DELAY * 2);
-		}
-	}
-}
-
 TimerHandle_t led_toggle_timer_handle; /**< Reference to LED1 toggling FreeRTOS timer. */
 /**@brief The function to call when the LED1 FreeRTOS timer expires.
  *
@@ -156,12 +104,15 @@ int main(void) {
 
 	err_code = rtc_init_task();
 	APP_ERROR_CHECK(err_code);
-
-        err_code = wifi_start_task();
+#ifdef APP_CONF_ENABLE_WINC
+    err_code = wifi_start_task();
 	APP_ERROR_CHECK(err_code);
-	
+#endif
+
+#ifdef APP_CONF_ENABLE_MQTT
 	err_code = mqtt_start_task();
-	APP_ERROR_CHECK(err_code);	
+	APP_ERROR_CHECK(err_code);
+#endif
 
 	/* Create task for timer with priority set to 2 */
 	UNUSED_VARIABLE(xTaskCreate(timer_task_function, "TIM", configMINIMAL_STACK_SIZE * 2, NULL, 2, &timer_task_handle));
@@ -199,11 +150,11 @@ int main(void) {
 	APP_ERROR_CHECK(err_code);
 
 	/* Configure LED-pins as outputs */
-	bsp_board_leds_init();        
+	bsp_board_leds_init();
 
 	/* Create task for button handling with priority set to 2 */
 	UNUSED_VARIABLE(xTaskCreate(button_task_function, "BUT", configMINIMAL_STACK_SIZE * 2, NULL, 2, &button_task_handle));
-	
+
 
 	/* Activate deep sleep mode */
 	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;

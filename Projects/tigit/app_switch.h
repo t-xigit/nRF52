@@ -19,6 +19,17 @@ extern "C" {
 #endif
 
 
+
+extern TaskHandle_t button_task_handle; /**< Reference to button task. */
+
+
+/**@brief Button task entry function.
+ *
+ * @param[in] pvParameter   Pointer that will be used as the parameter for the task.
+ */
+void button_task_function(void* pvParameter);
+
+
 /** @} */
 
 #ifdef __cplusplus
