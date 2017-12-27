@@ -108,7 +108,7 @@ void app_MQTTPublishSendQueue(publishTopics topic, uint32_t payload) {
 
 	//Assign Buffer Pointers
 	pub_msg.Message.payload = pub_msg.payload_buff;			// Assign Payload Buffer to Message
-	pub_msg.MesseagData.topicName = &pub_msg.MessageTopic;  // Assign Topic to Topic MetaData
+	pub_msg.MesseagData.topicName = &pub_msg.MessageTopic;		// Assign Topic to Topic MetaData
 	pub_msg.MesseagData.message = &pub_msg.Message;			// Assign Message to Message MetaData
 
 	pub_msg.MesseagData.message->qos = 1;
@@ -146,42 +146,35 @@ void app_MQTTPublishQueueHandler(publishTopics topic, uint32_t payload) {
 	Pub_MQTTMessage pub_msg;
         memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
 	size_t queue_size = 0;
-	int rc = 0;
-	NRF_LOG_INFO("app_MQTTPublishQueueHandler");
+	int rc = 0;	
 
-
-	MQTTMessage message;
-	char payloada[30];
-
-	message.qos = 1;
-	message.retained = 0;
-	message.payload = &payloada;
-	sprintf(&payloada, "online");
-	message.payloadlen = strlen(&payloada);
-
-        NRF_LOG_INFO("before publish");
 	// BUG
-	// The Publish call is stuck in at a Mutex, 
+	// The Publish call is stuck in at a Mutex,
 
-	if ((rc = MQTTPublish(&mqtt_client, "testtop/one/", &message)) != 0)
-		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
-	NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+	char test[] = "just some random string";
 
 	while (1) {
 		NRF_LOG_INFO("app_MQTTPublishQueueHandler");
 		// initialize buffer
 		memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
 		// check how many items are in the queue
-		//queue_size = uxQueueMessagesWaiting(mqtt_publish_Q);
+		queue_size = uxQueueMessagesWaiting(mqtt_publish_Q);
 		NRF_LOG_INFO("MQTT Publish Queue Items: %d", queue_size);
 		// read message from queue
-		//xQueueReceive(mqtt_publish_Q, &pub_msg, (TickType_t)portMAX_DELAY);
+		xQueueReceive(mqtt_publish_Q, &pub_msg, (TickType_t)portMAX_DELAY);
 		
-               // NRF_LOG_INFO("Publishing: %s/%s", pub_msg.MesseagData.topicName->cstring, pub_msg.MesseagData.message->payload);
+		
+                //msg->MesseagData.topicName->cstring	
+		
+               NRF_LOG_INFO("Publishing: %s - %s ", pub_msg.MessageTopic.cstring, pub_msg.Message.payload);
+               
+               
+                //msg->MesseagData.topicName->cstring	  = (char*)topic_white_goal;
 
-		if ((rc = MQTTPublish(&mqtt_client, pub_msg.MesseagData.topicName->cstring, &pub_msg.MesseagData.message)) != 0)
-			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
-		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+//		if ((rc = MQTTPublish(&mqtt_client, pub_msg.MesseagData.topicName->cstring, &pub_msg.MesseagData.message)) != 0)
+//			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+//		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+		 vTaskDelay(500);
 	}
 }
 
