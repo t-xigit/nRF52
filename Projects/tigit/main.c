@@ -38,6 +38,7 @@
 
 #include "SEGGER_SYSVIEW.h"
 
+#include "app_config.h"
 #include "app_rtc.h"
 #include "app_wifi.h"
 #include "app_mqtt.h"
@@ -104,7 +105,8 @@ int main(void) {
 
 	err_code = rtc_init_task();
 	APP_ERROR_CHECK(err_code);
-#ifdef APP_CONF_ENABLE_WINC
+
+#if APP_USE_WINC == APP_USE_WINC_ON
     err_code = wifi_start_task();
 	APP_ERROR_CHECK(err_code);
 #endif
