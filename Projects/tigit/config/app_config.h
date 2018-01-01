@@ -22,11 +22,31 @@
 // <1=> On
 
 #ifndef APP_USE_WINC
-#define APP_USE_WINC 0
+#define APP_USE_WINC 1
 #endif
 
 #define APP_USE_WINC_OFF 0
 #define APP_USE_WINC_ON 1
+
+// </e>
+
+//==========================================================
+// <e> APP_CONF_ENABLE_MQTT - Enables the MQTT 1500 Module
+//==========================================================
+#ifndef APP_CONF_ENABLE_MQTT
+#define APP_CONF_ENABLE_MQTT 1
+#endif
+// <o> APP_SWITCH_CONFIG_LOG_LEVEL  - Default Severity level
+
+// <0=> Off
+// <1=> On
+
+#ifndef APP_USE_MQTT
+#define APP_USE_MQTT 1
+#endif
+
+#define APP_USE_MQTT_OFF 0
+#define APP_USE_MQTT_ON 1
 
 // </e>
 

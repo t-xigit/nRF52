@@ -225,8 +225,10 @@ static void gpio_init(void)
 {
     ret_code_t err_code;
 
-    err_code = nrf_drv_gpiote_init();
-    APP_ERROR_CHECK(err_code);
+    if(nrf_drv_gpiote_is_init == false){
+      err_code = nrf_drv_gpiote_init();
+      APP_ERROR_CHECK(err_code);
+    }
     
     in_config.pull = NRF_GPIO_PIN_NOPULL;
 

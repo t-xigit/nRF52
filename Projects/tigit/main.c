@@ -111,7 +111,7 @@ int main(void) {
 	APP_ERROR_CHECK(err_code);
 #endif
 
-#ifdef APP_CONF_ENABLE_MQTT
+#if APP_CONF_ENABLE_MQTT == APP_USE_MQTT_ON
 	err_code = mqtt_start_task();
 	APP_ERROR_CHECK(err_code);
 #endif
