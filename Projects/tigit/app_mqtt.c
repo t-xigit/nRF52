@@ -157,9 +157,9 @@ void app_MQTTPublishQueueHandler(publishTopics topic, uint32_t payload) {
 		xQueueReceive(mqtt_publish_Q, &pub_msg, (TickType_t)portMAX_DELAY);
 
 		NRF_LOG_INFO("Publishing Topic  : %s", pub_msg.MessageTopic.cstring);
-        NRF_LOG_INFO("Publishing Payload: %s", pub_msg.payload_buff);
+		NRF_LOG_INFO("Publishing Payload: %s", pub_msg.payload_buff);
 
-#if 0 // BUG The Publish call is stuck in at a Mutex,
+#if 1 // BUG The Publish call is stuck in at a Mutex,
 		if ((rc = MQTTPublish(&mqtt_client, pub_msg.MessageTopic.cstring, &pub_msg.Message)) != 0)
 			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
 		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
@@ -220,13 +220,14 @@ static void prvMQTTEchoTask(void* pvParameters) {
 	} else {
 		NRF_LOG_INFO("MQTT Connected");
 	}
-	/*
+#if 1
 	if ((rc = MQTTSubscribe(&mqtt_client, "testtop/one/", 1, messageArrived)) != 0) {
 		NRF_LOG_ERROR("Return code from MQTT subscribe is %d", rc);
 	} else {
 		NRF_LOG_INFO("MQTT Subscribed");
 	}
-*/
+#endif
+#if 0
 	MQTTMessage message;
 	char payload[30];
 
@@ -239,10 +240,10 @@ static void prvMQTTEchoTask(void* pvParameters) {
 	if ((rc = MQTTPublish(&mqtt_client, "testtop/one/", &message)) != 0)
 		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
 	NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
-
-	app_MQTTPublishSendQueue(online, 1);
-	app_MQTTPublishSendQueue(white, 1);
-	app_MQTTPublishSendQueue(black, 1);
+#endif
+//	app_MQTTPublishSendQueue(online, 1);
+//	app_MQTTPublishSendQueue(white, 1);
+//	app_MQTTPublishSendQueue(black, 1);
 
 	ret_code_t err_code = (ret_code_t)xTaskCreate(app_MQTTPublishQueueHandler, /* The function that implements the task. */
 		"PQU",																   /* Just a text name for the task to aid debugging. */
