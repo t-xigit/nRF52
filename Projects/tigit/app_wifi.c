@@ -320,9 +320,9 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				if (pstrRecv->s16BufferSize <= 0) {
 					NRF_LOG_DEBUG("SOCK_ERR >>> CODE: %d >>> ", pstrRecv->s16BufferSize);
 					if (pstrRecv->s16BufferSize == SOCK_ERR_CONN_ABORTED) {
-						NRF_LOG_ERROR("SOCK_ERR_CONN_ABORTED\n\r");
+						NRF_LOG_ERROR("SOCK_ERR_CONN_ABORTED");
 					} else if (pstrRecv->s16BufferSize == SOCK_ERR_NO_ERROR) {
-						NRF_LOG_ERROR("SOCKET CONNECTION IS TERMINATED\n\r");
+						NRF_LOG_ERROR("SOCKET CONNECTION IS TERMINATED");
 					}
 				}
 				// This means there are valid data to be pulled

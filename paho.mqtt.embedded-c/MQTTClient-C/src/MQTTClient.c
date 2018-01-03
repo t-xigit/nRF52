@@ -16,6 +16,7 @@
  *   Ian Craggs - add ability to set message handler separately #6
  *******************************************************************************/
 #include "MQTTClient.h"
+#include "nrf_log.h"
 
 static void NewMessageData(MessageData* md, MQTTString* aTopicName, MQTTMessage* aMessage) {
     md->topicName = aTopicName;
@@ -257,6 +258,7 @@ int cycle(MQTTClient* c, Timer* timer)
         rc = SUCCESS;
 
     int packet_type = readPacket(c, timer);     /* read the socket, see what work is due */
+    NRF_LOG_INFO("readPacket >>> packet_type: %d",packet_type);
 
     switch (packet_type)
     {
@@ -267,11 +269,16 @@ int cycle(MQTTClient* c, Timer* timer)
         case 0: /* timed out reading packet */
             break;
         case CONNACK:
+	    NRF_LOG_INFO("MQTT:CONNACK");
+	    break;
         case PUBACK:
+	    NRF_LOG_INFO("MQTT:PUBACK");
         case SUBACK:
+	    NRF_LOG_INFO("MQTT:SUBACK");
             break;
         case PUBLISH:
         {
+	    NRF_LOG_INFO("MQTT:PUBLISH");
             MQTTString topicName;
             MQTTMessage msg;
             int intQoS;
@@ -280,6 +287,7 @@ int cycle(MQTTClient* c, Timer* timer)
                (unsigned char**)&msg.payload, (int*)&msg.payloadlen, c->readbuf, c->readbuf_size) != 1)
                 goto exit;
             msg.qos = (enum QoS)intQoS;
+	    NRF_LOG_INFO("MQTT:PUBLISH:TOPIC >>> %s",topicName.lenstring.data);
             deliverMessage(c, &topicName, &msg);
             if (msg.qos != QOS0)
             {
@@ -316,6 +324,7 @@ int cycle(MQTTClient* c, Timer* timer)
         case PUBCOMP:
             break;
         case PINGRESP:
+        NRF_LOG_INFO("MQTT:PINGRESP");
             c->ping_outstanding = 0;
             break;
     }

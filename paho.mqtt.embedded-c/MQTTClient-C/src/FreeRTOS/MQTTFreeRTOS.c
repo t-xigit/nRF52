@@ -42,11 +42,13 @@ void MutexInit(Mutex* mutex)
 
 int MutexLock(Mutex* mutex)
 {
+	printf("\n\r-----------------MutexLock\n\r");
 	return xSemaphoreTake(mutex->sem, portMAX_DELAY);
 }
 
 int MutexUnlock(Mutex* mutex)
 {
+	printf("\n\r-----------------MutexUnlock\n\r");
 	return xSemaphoreGive(mutex->sem);
 }
 
