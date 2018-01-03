@@ -328,10 +328,7 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				// This means there are valid data to be pulled
 				else if (pstrRecv->s16BufferSize > 0) {
 					NRF_LOG_DEBUG("SOCKET_MSG_RECV >>> MSG_OK : %d", pstrRecv->s16BufferSize);
-
-					NRF_LOG_DEBUG("SOCKET_MSG_RECV >>> FreeRTOS_recv_copy");
 					FreeRTOS_recv_copy(pstrRecv);
-
 					if (xSemaphoreGive(socket_rx_sema) != pdPASS) {
 						NRF_LOG_ERROR("xSemaphoreGive >>> ERROR >>> socket_rx_sema");
 					}
