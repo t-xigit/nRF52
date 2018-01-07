@@ -202,8 +202,8 @@ int FreeRTOS_recv(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 	   if( xQueueReceive( socket_rx_Q, &(rx_message), (TickType_t)  portMAX_DELAY) ) {
 	       // new Message Received
                NRF_LOG_DEBUG("FreeRTOS_recv >>> Released");
-               NRF_LOG_DEBUG("FreeRTOS_recv >>> rx_message.tstrSocketRecvMsg.s16BufferSize : %d", rx_message.tstrSocketRecvMsg.s16BufferSize);
-               NRF_LOG_HEXDUMP_DEBUG(rx_message.rxBuffer, rx_message.tstrSocketRecvMsg.s16BufferSize);
+               //NRF_LOG_DEBUG("FreeRTOS_recv >>> rx_message.tstrSocketRecvMsg.s16BufferSize : %d", rx_message.tstrSocketRecvMsg.s16BufferSize);
+               //NRF_LOG_HEXDUMP_DEBUG(rx_message.rxBuffer, rx_message.tstrSocketRecvMsg.s16BufferSize);
                s16BufferSizeRemaining = rx_message.tstrSocketRecvMsg.s16BufferSize;               	       
 	   }
 		
