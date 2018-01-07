@@ -90,7 +90,7 @@ static SOCKET udp_socket = -1;
 
 static uint8_t gau8SocketBuffer[MAIN_WIFI_M2M_BUFFER_SIZE]; /** Receive buffer definition. */
 
-static uint8 gu8SleepStatus; /**< Wi-Fi Sleep status. */
+static uint8 gu8SleepStatus;		  /**< Wi-Fi Sleep status. */
 
 struct sockaddr_in resolved_addr;
 
@@ -99,21 +99,18 @@ tstrWifiInitParam param;
 tstrSystemTime* sys_time;
 
 uint8_t rxBuffer[rxBufferSize];
-//tstrSocketRecvMsg* pstrRecv;
-tstrSocketRecvMsg RecvData;
-tstrSocketRecvMsg* RecvDataptr;
 
 size_t RecvDataSize = sizeof(tstrSocketRecvMsg);
 
-TaskHandle_t wifi_task_handle;			/**< Reference to LED0 toggling FreeRTOS task. */
-SemaphoreHandle_t m_winc_int_semaphore; /**< Semaphore set in WIFI ISR */
-SemaphoreHandle_t app_wifi_sys_t_Sema;  /**< Semaphore for WIFI client */
-SemaphoreHandle_t app_dns_Sema;			/**< Semaphore for dns reslove wait */
+TaskHandle_t wifi_task_handle;		  /**< Reference to LED0 toggling FreeRTOS task. */
+SemaphoreHandle_t m_winc_int_semaphore;	  /**< Semaphore set in WIFI ISR */
+SemaphoreHandle_t app_wifi_sys_t_Sema;	  /**< Semaphore for WIFI client */
+SemaphoreHandle_t app_dns_Sema;		  /**< Semaphore for dns reslove wait */
 
 SemaphoreHandle_t socket_rx_sema;
 
-QueueHandle_t socket_snd_Q; /**< Queue for returning the error code from the Socket CB */
-QueueHandle_t socket_rx_Q;  /**< Queue for RX Data from the Socket CB */
+QueueHandle_t socket_snd_Q;		  /**< Queue for returning the error code from the Socket CB */
+QueueHandle_t socket_rx_Q;		  /**< Queue for RX Data from the Socket CB */
 
 /**
  * \brief Callback to get the Wi-Fi status update.
@@ -310,10 +307,10 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 
 		case SOCKET_MSG_RECV: {
 			NRF_LOG_DEBUG("socket_cb: SOCKET_MSG_RECV");
+                        rx_socket_msg_t rx_message;	    /**< Buffer to be copied into message queue*/
+			memset(&rx_message, 0, sizeof(rx_socket_msg_t));
 			tstrSocketRecvMsg* pstrRecv = (tstrSocketRecvMsg*)pvMsg;
-			pstrRecv->pu8Buffer = rxBuffer;
-
-			memcpy(&RecvData, pstrRecv, sizeof(tstrSocketRecvMsg));
+			pstrRecv->pu8Buffer = rxBuffer;	
 
 			if (sock == mqtt_client.ipstack->my_socket) {
 				// This means an error occurred
@@ -328,10 +325,15 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void* pvMsg) {
 				// This means there are valid data to be pulled
 				else if (pstrRecv->s16BufferSize > 0) {
 					NRF_LOG_DEBUG("SOCKET_MSG_RECV >>> MSG_OK : %d", pstrRecv->s16BufferSize);
-					FreeRTOS_recv_copy(pstrRecv);
-					if (xSemaphoreGive(socket_rx_sema) != pdPASS) {
-						NRF_LOG_ERROR("xSemaphoreGive >>> ERROR >>> socket_rx_sema");
-					}
+
+					// copy meta data into queue message buffer
+					memcpy(&rx_message.tstrSocketRecvMsg, pstrRecv, sizeof(tstrSocketRecvMsg));
+                                        // copy actual message int queue buffer
+                                        memcpy(&rx_message.rxBuffer[0], &rxBuffer, pstrRecv->s16BufferSize);
+					
+					if (xQueueSend(socket_rx_Q, &rx_message, (TickType_t) 100) != pdTRUE) {
+						NRF_LOG_ERROR("xQueueSend >>> ERROR >>> socket_rx_Q Full");
+					}else NRF_LOG_DEBUG("xQueueSend >>> socket_rx_Q");
 				}
 			}
                         ret = (sint16)recv(mqtt_client.ipstack ->my_socket, rxBuffer, rxBufferSize, 0);
@@ -492,11 +494,11 @@ int wifi_start_task(void) {
 		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_snd_Q");
 	}
 
-	//	socket_rx_Q = xQueueCreate(1, sizeof(tstrSocketRecvMsg*));
-	//
-	//	if (socket_rx_Q == NULL) {
-	//		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_rx_Q");
-	//	}
+	socket_rx_Q = xQueueCreate(5, sizeof(rx_socket_msg_t));
+
+	if (socket_rx_Q == NULL) {
+		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_rx_Q");
+	}
 
 	//vTaskDelay(1000);
 	/* Create task for LED0 blinking with priority set to 2 */

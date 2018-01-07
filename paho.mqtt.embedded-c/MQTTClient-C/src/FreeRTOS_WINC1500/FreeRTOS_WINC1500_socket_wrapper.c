@@ -73,7 +73,7 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 	vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
 	do {
 		int rc = 0;
-
+	       
 		ret = send(n->my_socket, buffer, len, (uint16)0);
 		sentLen = ret;
 
@@ -134,9 +134,9 @@ exit:
 
 sint16 s16BufferSizeRemaining;
 uint16_t u16NextData;
-uint8_t rxMessageBuffer[rxBufferSize];
+rx_socket_msg_t rx_message;	    /**< Buffer to be copied into message queue*/
 tstrSocketRecvMsg RecvDataStorage;
-
+#if 0
 void FreeRTOS_recv_copy(tstrSocketRecvMsg* RecvData) {
 	s16BufferSizeRemaining = 0;
 	u16NextData = 0;
@@ -152,9 +152,31 @@ void FreeRTOS_recv_copy(tstrSocketRecvMsg* RecvData) {
         memcpy(RecvDataStorage.pu8Buffer, RecvData->pu8Buffer, RecvData->s16BufferSize);
 	
 	NRF_LOG_DEBUG("FreeRTOS_recv_copy >>> Copy Buffer %d Bytes", RecvData->s16BufferSize);	
+        NRF_LOG_HEXDUMP_DEBUG(RecvData->pu8Buffer,RecvData->s16BufferSize);
 }
+#endif
 
+#if 0
+void FreeRTOS_recv_Queue_Handle(tstrSocketRecvMsg* RecvData) {
+	s16BufferSizeRemaining = 0;
+	u16NextData = 0;
+	//First clear the buffers
+	
+	 
+	// copy the meta data
+	memcpy(&RecvDataStorage, RecvData, sizeof(tstrSocketRecvMsg));
+	//assign the payload buffer
+	
+	// copy the actual payload
+        memcpy(RecvDataStorage.pu8Buffer, RecvData->pu8Buffer, RecvData->s16BufferSize);
+	
+	NRF_LOG_DEBUG("FreeRTOS_recv_copy >>> Copy Buffer %d Bytes", RecvData->s16BufferSize);	
+        NRF_LOG_HEXDUMP_DEBUG(RecvData->pu8Buffer,RecvData->s16BufferSize);
+}
+#endif
+#if 0
 int FreeRTOS_recv(Network* n, unsigned char* buffer, int len, int timeout_ms) {
+	
 	if (!s16BufferSizeRemaining) {
 		if (xSemaphoreTake(socket_rx_sema, (TickType_t)portMAX_DELAY) == pdTRUE) {
 			s16BufferSizeRemaining = RecvDataStorage.s16BufferSize;
@@ -163,7 +185,7 @@ int FreeRTOS_recv(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 			NRF_LOG_ERROR("FreeRTOS_recv");
 		}
 	}
-
+		
 	memcpy(buffer, RecvDataStorage.pu8Buffer + u16NextData, len);
 
 	u16NextData += len;
@@ -171,6 +193,37 @@ int FreeRTOS_recv(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 
 	return len;
 }
+#endif
+
+#if 1
+int FreeRTOS_recv(Network* n, unsigned char* buffer, int len, int timeout_ms) {
+	
+	if (!s16BufferSizeRemaining) {
+	   if( xQueueReceive( socket_rx_Q, &(rx_message), (TickType_t)  portMAX_DELAY) ) {
+	       // new Message Received
+               NRF_LOG_DEBUG("FreeRTOS_recv >>> Released");
+               NRF_LOG_DEBUG("FreeRTOS_recv >>> rx_message.tstrSocketRecvMsg.s16BufferSize : %d", rx_message.tstrSocketRecvMsg.s16BufferSize);
+               NRF_LOG_HEXDUMP_DEBUG(rx_message.rxBuffer, rx_message.tstrSocketRecvMsg.s16BufferSize);
+               s16BufferSizeRemaining = rx_message.tstrSocketRecvMsg.s16BufferSize;               	       
+	   }
+		
+	}
+		
+	memcpy(buffer, rx_message.rxBuffer + u16NextData, len);
+
+	u16NextData += len;
+	s16BufferSizeRemaining -= (sint16)len;
+
+	// no more data leaft, init buffers
+        if (!s16BufferSizeRemaining) {
+	    u16NextData = 0;
+	    memset(&rx_message, 0, sizeof(rx_socket_msg_t));
+	}
+	
+
+	return len;
+}
+#endif
 
 int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 	TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
@@ -182,10 +235,9 @@ int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms) {
 		int rc = 0;
 
 		//FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
-                NRF_LOG_DEBUG("FreeRTOS_recv >>> entry");
-		rc = FreeRTOS_recv(n->my_socket, buffer + recvLen, len - recvLen, 0);
-                NRF_LOG_DEBUG("FreeRTOS_recv >>> read bytes: %d >>> %.20s", len, buffer);
-                NRF_LOG_DEBUG("FreeRTOS_recv >>> exit");
+
+		rc = FreeRTOS_recv(n->my_socket, buffer + recvLen, len - recvLen, 0);                
+
 		if (rc > 0)
 			recvLen += rc;
 		else if (rc < 0) {

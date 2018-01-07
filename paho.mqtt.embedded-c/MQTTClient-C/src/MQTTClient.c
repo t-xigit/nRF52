@@ -273,6 +273,7 @@ int cycle(MQTTClient* c, Timer* timer)
 	    break;
         case PUBACK:
 	    NRF_LOG_INFO("MQTT:PUBACK");
+	    break;
         case SUBACK:
 	    NRF_LOG_INFO("MQTT:SUBACK");
             break;
@@ -287,7 +288,6 @@ int cycle(MQTTClient* c, Timer* timer)
                (unsigned char**)&msg.payload, (int*)&msg.payloadlen, c->readbuf, c->readbuf_size) != 1)
                 goto exit;
             msg.qos = (enum QoS)intQoS;
-	    NRF_LOG_INFO("MQTT:PUBLISH:TOPIC >>> %s",topicName.lenstring.data);
             deliverMessage(c, &topicName, &msg);
             if (msg.qos != QOS0)
             {
@@ -376,7 +376,7 @@ void MQTTRun(void* parm)
 #if defined(MQTT_TASK)
 		MutexLock(&c->mutex);
 #endif
-		TimerCountdownMS(&timer, 500); /* Don't wait too long if no traffic is incoming */
+		TimerCountdownMS(&timer, 50000); /* Don't wait too long if no traffic is incoming */
 		cycle(c, &timer);
 #if defined(MQTT_TASK)
 		MutexUnlock(&c->mutex);

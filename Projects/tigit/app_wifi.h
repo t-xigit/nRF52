@@ -36,6 +36,17 @@ extern QueueHandle_t socket_rx_Q;
 #define rxBufferSize 256
 #define wifi_req_curr_rssi() m2m_wifi_req_curr_rssi()
 
+typedef struct {
+	uint8_t rxBuffer[rxBufferSize];
+	/*!<		
+		Buffer for the received socket message.
+	*/
+	tstrSocketRecvMsg tstrSocketRecvMsg;
+	/*!<
+		Struct with the received socket message meta data.
+	*/
+} rx_socket_msg_t;
+
 int wifi_start_task(void);
 void wifi_turn_off(void);
 

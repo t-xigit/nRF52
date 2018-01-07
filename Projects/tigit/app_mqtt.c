@@ -169,8 +169,8 @@ void app_MQTTPublishQueueHandler(publishTopics topic, uint32_t payload) {
 }
 
 static void prvMQTTEchoTask(void* pvParameters) {
-	int rc = 0,
-		count = 0;
+	int rc = 0;
+		
 	MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
 
 	pvParameters = 0;
@@ -230,20 +230,31 @@ static void prvMQTTEchoTask(void* pvParameters) {
 #if 0
 	MQTTMessage message;
 	char payload[30];
+        uint16_t count = 10;
 
 	message.qos = 1;
 	message.retained = 0;
-	message.payload = payload;
-	sprintf(payload, "online");
-	message.payloadlen = strlen(payload);
+        message.payload = payload;
 
-	if ((rc = MQTTPublish(&mqtt_client, "testtop/one/", &message)) != 0)
-		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
-	NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+	while(count) {
+	   
+           sprintf(payload, "%d", count);
+	   message.payloadlen = strlen(payload);
+
+	   count--;
+
+	   if ((rc = MQTTPublish(&mqtt_client, "testtop/one/", &message)) != 0)
+		   NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+	   NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+       }
+
+
 #endif
 //	app_MQTTPublishSendQueue(online, 1);
 //	app_MQTTPublishSendQueue(white, 1);
 //	app_MQTTPublishSendQueue(black, 1);
+	 
+	 while(1);
 
 	ret_code_t err_code = (ret_code_t)xTaskCreate(app_MQTTPublishQueueHandler, /* The function that implements the task. */
 		"PQU",																   /* Just a text name for the task to aid debugging. */
@@ -292,16 +303,12 @@ int mqtt_start_task(void) {
 		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> mqtt_publish_Q");
 	}
 
-	if (socket_rx_Q == NULL) {
-		NRF_LOG_ERROR("xQueueCreate >>> ERROR >>> socket_rx_Q");
-	}
-
 	err_code = (ret_code_t)xTaskCreate(prvMQTTEchoTask, /* The function that implements the task. */
-		"AMQ",											/* Just a text name for the task to aid debugging. */
-		configMINIMAL_STACK_SIZE + 800,					/* The stack size is defined in FreeRTOSIPConfig.h. */
-		NULL,											/* The task parameter, not used in this case. */
-		2,												/* The priority assigned to the task is defined in FreeRTOSConfig.h. */
-		mqtt_task_handle);								/* The task handle is not used. */
+		"AMQ",					    /* Just a text name for the task to aid debugging. */
+		configMINIMAL_STACK_SIZE + 800,		    /* The stack size is defined in FreeRTOSIPConfig.h. */
+		NULL,					    /* The task parameter, not used in this case. */
+		2,					    /* The priority assigned to the task is defined in FreeRTOSConfig.h. */
+		mqtt_task_handle);			    /* The task handle is not used. */
 
 	if (err_code == pdPASS) {
 		NRF_LOG_INFO("MQTT TASK CREATED");
