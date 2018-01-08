@@ -376,6 +376,7 @@ void MQTTRun(void* parm)
 #if defined(MQTT_TASK)
 		MutexLock(&c->mutex);
 #endif
+                //TODO figure out which timeout value makes senese
 		TimerCountdownMS(&timer, 50000); /* Don't wait too long if no traffic is incoming */
 		cycle(c, &timer);
 #if defined(MQTT_TASK)
