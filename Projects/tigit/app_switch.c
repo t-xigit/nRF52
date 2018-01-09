@@ -231,6 +231,8 @@ void button_task_function(void* pvParameter) {
             case BSP_BUTTON_2: {
                 NRF_LOG_INFO("BUTTON 2");
                 vTaskDelay(BUTTON_TASK_DELAY * 2);
+                app_MQTTPublishSendQueue(white, 1);
+		 
                 break;
             }
 
@@ -238,6 +240,7 @@ void button_task_function(void* pvParameter) {
                 NRF_LOG_INFO("BUTTON 3");
                 //wifi_turn_off();
                 vTaskDelay(BUTTON_TASK_DELAY * 2);
+                app_MQTTPublishSendQueue(black, 1);
                 break;
             }
         }

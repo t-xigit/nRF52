@@ -173,15 +173,19 @@
         <file file_name="../config/sdk_config.h" />
         <file file_name="../config/app_config.h" />
       </folder>
-      <file file_name="../main.c" />
-      <file file_name="../app_rtc.c" />
-      <file file_name="../app_rtc.h" />
-      <file file_name="../app_wifi.c" />
-      <file file_name="../app_wifi.h" />
-      <file file_name="../app_mqtt.c" />
-      <file file_name="../app_mqtt.h" />
-      <file file_name="../app_switch.c" />
-      <file file_name="../app_switch.h" />
+      <folder Name="include">
+        <file file_name="../app_wifi.h" />
+        <file file_name="../app_mqtt.h" />
+        <file file_name="../app_switch.h" />
+        <file file_name="../app_rtc.h" />
+      </folder>
+      <folder Name="src">
+        <file file_name="../main.c" />
+        <file file_name="../app_wifi.c" />
+        <file file_name="../app_switch.c" />
+        <file file_name="../app_rtc.c" />
+        <file file_name="../app_mqtt.c" />
+      </folder>
     </folder>
     <folder Name="Device">
       <file file_name="../../../nRF5_SDK_14_2/components/toolchain/ses/ses_nRF_Startup.s" />

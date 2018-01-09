@@ -51,7 +51,7 @@ NRF_LOG_MODULE_REGISTER();
  */
 #define BLINK_RTC 2
 
-const char topic_online[]		= "table/online/";
+const char topic_online[]	= "table/online/";
 const char topic_white_goal[]	= "goal/white/";
 const char topic_black_goal[]	= "goal/black/";
 
@@ -250,28 +250,37 @@ static void prvMQTTEchoTask(void* pvParameters) {
 
 
 #endif
-//	app_MQTTPublishSendQueue(online, 1);
+	app_MQTTPublishSendQueue(online, 1);
 //	app_MQTTPublishSendQueue(white, 1);
-//	app_MQTTPublishSendQueue(black, 1);
-	 
-	 while(1);
+//	app_MQTTPublishSendQueue(black, 1);	 	 
 
-	ret_code_t err_code = (ret_code_t)xTaskCreate(app_MQTTPublishQueueHandler, /* The function that implements the task. */
-		"PQU",																   /* Just a text name for the task to aid debugging. */
-		configMINIMAL_STACK_SIZE * 4,										   /* The stack size is defined in FreeRTOSIPConfig.h. */
-		NULL,																   /* The task parameter, not used in this case. */
-		2,																	   /* The priority assigned to the task is defined in FreeRTOSConfig.h. */
-		mqtt_publish_handle);												   /* The task handle is not used. */
+	Pub_MQTTMessage pub_msg;
 
-	if (err_code == pdPASS) {
-		NRF_LOG_INFO("MQTT Publish TASK CREATED");
-		err_code = NRF_SUCCESS;
-	} else {
-		NRF_LOG_ERROR("MQTT TASK CREATE ERROR");
-		err_code = NRF_ERROR_NO_MEM;
+	size_t queue_size = 0;
+	rc = 0;
+
+	while (1) {
+		NRF_LOG_INFO("app_MQTTPublishQueueHandler");
+		// initialize buffer
+		memset(&pub_msg, 0, sizeof(Pub_MQTTMessage));
+
+		// check how many items are in the queue
+		queue_size = uxQueueMessagesWaiting(mqtt_publish_Q);
+		NRF_LOG_INFO("MQTT Publish Queue Items: %d", queue_size);
+
+		// read message from queue
+		xQueueReceive(mqtt_publish_Q, &pub_msg, (TickType_t)portMAX_DELAY);
+
+		NRF_LOG_INFO("Publishing Topic  : %s", pub_msg.MessageTopic.cstring);
+		NRF_LOG_INFO("Publishing Payload: %s", pub_msg.payload_buff);
+
+#if 1 // BUG The Publish call is stuck in at a Mutex,
+		if ((rc = MQTTPublish(&mqtt_client, pub_msg.MessageTopic.cstring, &pub_msg.Message)) != 0)
+			NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+		NRF_LOG_DEBUG("Return code from MQTT publish is %d\n", rc);
+#endif
+		 app_MQTTPublishSendQueue(online, 1);
 	}
-
-	vTaskSuspend(NULL);
 }
 
 /**@brief RTC task handle function.
